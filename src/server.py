@@ -20,5 +20,4 @@ def apply_cors():
 app = default_app()
 app.add_hook('after_request', apply_cors)
 
-
 run(app=app, host='localhost', port=8080, debug=True)  

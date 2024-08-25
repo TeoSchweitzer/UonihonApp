@@ -1,18 +1,18 @@
 {
     "files.exclude": {
         "**/__pycache__/": true
-        
+
     },
 
     "emeraldwalk.runonsave": {
         "autoClearConsole":true,
         "commands": [
             {
-                "match": "server.py",
+                "match": "src\\\\*",
                 "cmd": "echo 'restarting server'"
             },
             {
-                "match": "server.py",
+                "match": "src\\\\*",
                 "cmd": ".\\commands\\restart.cmd"
             },
         ]

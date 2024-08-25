@@ -7,9 +7,9 @@ def kanjisPost():
         outputFile.write(request.json['message'])
     return 'written ok'
 
-@route('/aa', method = ['GET']) 
+@route('/aaaa', method = ['GET']) 
 def kanjisGet():
     kanjisFile = ""
-    with open('client.html', 'r', encoding="utf-8") as theFile:
+    with open('resources\\client.html', 'r', encoding="utf-8") as theFile:
         kanjisFile = theFile.read()
     return kanjisFile
