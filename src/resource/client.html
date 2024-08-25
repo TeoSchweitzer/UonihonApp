@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet/less" type="text/css" href="styles.less" />
+  <link rel="icon"                 href="asset/icon/favicon.ico">
+  <link rel="icon" sizes="16x16"   href="asset/icon/favicon-16x16.png">
+  <link rel="icon" sizes="32x32"   href="asset/icon/favicon-32x32.png">
+  <link rel="icon" sizes="180x180" href="asset/icon/favicon-180x180.png">
+  <link rel="icon" sizes="192x192" href="asset/icon/favicon-192x192.png">
+  <link rel="icon" sizes="512x512" href="asset/icon/favicon-192x192.png">
+  <title>Uonihon</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.1.3/less.min.js" ></script>
+</head>
+
+<body class="full-height">
+
+  <script>
+
+    function doSomething(toWrite) {
+      fetch("http://localhost:8080/kanjis", {
+        method: "POST",
+        body: JSON.stringify({
+          message: toWrite
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8"
+        }
+      })
+        .then((response) => response.json())
+        .then((json) => console.log(json));
+    }
+
+  </script>
+
+  <div  style="height: 100%; position: absolute; width: 100%;">
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <button onclick="doSomething('this is a string')">THE BUTTON</button>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
+    <div class="bottom-tabs">
+      <div>
+        <img class="tab-icon" src="asset/HiraganaKa.png"/>
+        Kana
+      </div>
+      <div>
+        <img class="tab-icon" src="asset/complicatedKanji.png"/>
+        Kanji
+      </div>
+      <div>
+        <img class="tab-icon" src="asset/letterW.png"/>
+        Vocabulary
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
