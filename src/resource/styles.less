@@ -1,30 +1,202 @@
-// Variables
-@charcoal:        #373F51;
-@charcoal-hover:  darken(@charcoal, 10%);
 
-@celestial-blue:        #008DD5;
-@pale-dogwood:        #DFBBB1;
-@crayola:        #F56476;
-@cerise:        #E43F6F;
 
-* {
-    margin: 0;
-    padding: 0;
-    font-family: Garamond, sans-serif;
-    font-size: 40px;
-    font-weight: 600;
+@black: #000000;
+@black-filter: invert(0%) sepia(54%) saturate(5212%) hue-rotate(87deg) brightness(99%) contrast(105%);
+
+@white: #FFFFFF;
+@white-filter: invert(99%) sepia(55%) saturate(2%) hue-rotate(81deg) brightness(109%) contrast(100%);
+
+@primary:        #0A2342;
+@primary-filter: invert(11%) sepia(39%) saturate(2072%) hue-rotate(185deg) brightness(96%) contrast(97%);
+
+@secondary:        #2CA58D;
+@secondary-filter: invert(50%) sepia(69%) saturate(407%) hue-rotate(118deg) brightness(95%) contrast(89%);
+
+@tertiary:        #C82634;
+@tertiary-filter: invert(53%) sepia(82%) saturate(4264%) hue-rotate(326deg) brightness(126%) contrast(92%);
+
+@app-colors: black, white, primary, secondary, tertiary;
+
+@current-tab-color: lighten(@primary,10%); 
+
+@main-background-color: @black;
+@main-text-color: @white;
+
+@tabs-main-color: white;
+@tabs-background-color: black;
+@tabs-border-color: white;
+
+.generate-backgrounds(@colors) {
+  .loop(@i: 1) when (@i <= length(@colors)) {
+    @color: extract(@colors, @i);
+    .@{color}-background {
+      background-color: @@color;
+    }
+    .loop(@i + 1);
   }
+  .loop();
+}
+.generate-backgrounds(@app-colors);
 
-  .full-height {
+body {
+  margin: 0;
+  padding: 0;
+  background-color: lighten(@current-tab-color, 10%);
+  font-family: Garamond, sans-serif;
+  font-size: 35px;
+  font-weight: 600;
+  color: @main-text-color;
+}
+
+.app-container {
+
+  .main-view-containers {
+    background-color: lighten(@current-tab-color, 10%);
     height: 100%;
-    background-color: @charcoal-hover;
+    
+    .main-view-container {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
+      margin-top: 20px;
+      height: 100%;
+      padding: 20px;
+
+      .title {
+        font-size: 35px;
+        font-weight: 750;
+      }
+
+      .content {
+        font-size: 45px;
+        font-weight: 500;
+      }
+
+      .main-content {
+        font-size: 85px;
+      }
+
+      .wideguy {
+        margin: 20px;
+        height: 200px;
+      }
+
+    }
+
   }
 
-  .bottom-tabs {
+  .tabs-container {
+    display: flex;
+    background-color: ~'@{@{tabs-background-color}}';
+    border-top: 3px solid ~'@{@{tabs-border-color}}';
     position: fixed;
-    bottom: 0;
-  }
+    width: 100%;
+    
+    &.main-tabs-container {
+      bottom: 0;
+    }
+    &.sub-tabs-container {
+      bottom: 145px;
+    }
+    &.sub-sub-tabs-container {
+      bottom: 290px;
+    }
 
-  .tab-icon {
-    width: 70px
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: @current-tab-color;
+      border-right: 3px solid ~'@{@{tabs-border-color}}';
+      height: 120px;
+      padding-top: 22px;
+      width: 33.33%;
+
+      &.three-tabs { width: 33.33%; }
+      &.two-tabs { width: 50%; }
+      &.one-tabs { width: 100%;  }
+
+      &.vocabularyTab {background-color: @primary;}
+      &.kanjiTab {background-color: @secondary;}
+      &.kanaTab {background-color: @tertiary;}
+
+      &:last-child { border-right: none; }
+  
+      .tab-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 8px;
+        filter: ~'@{@{tabs-main-color}-filter}';
+      }
+      
+      .tab-text {
+        font-size: 28px;
+        color: ~'@{@{tabs-main-color}}';
+      }
+    }
   }
+  
+}
+
+.word-card {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+
+.reading-text {
+  font-size: 1.5em;
+  color: @white;
+  margin-left: 10px;
+}
+
+section {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+h2 {
+  color: @white;
+  border-bottom: 2px solid @white;
+  padding-bottom: 3px;
+}
+
+.meaning-text {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: @white;
+}
+
+.explanation p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.primary-card {
+  background-color: @primary;
+  padding: 25px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.word-title {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 4.5em;
+  padding: 0 35px 14px 35px;
+  font-weight: bold;
+  color: @white;
+}
+
+.primary-card .japanese {
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 3px;
+  color: @white;
+}
+
+.primary-card .english {
+  color: darken(@white,25%);
+  font-size: 0.1em;
+  font-style: italic;
+}

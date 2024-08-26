@@ -3,18 +3,18 @@
 
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet/less" type="text/css" href="styles.less" />
-  <link rel="icon"                 href="asset/icon/favicon.ico">
-  <link rel="icon" sizes="16x16"   href="asset/icon/favicon-16x16.png">
-  <link rel="icon" sizes="32x32"   href="asset/icon/favicon-32x32.png">
+  <link rel="icon" href="asset/icon/favicon.ico">
+  <link rel="icon" sizes="16x16" href="asset/icon/favicon-16x16.png">
+  <link rel="icon" sizes="32x32" href="asset/icon/favicon-32x32.png">
   <link rel="icon" sizes="180x180" href="asset/icon/favicon-180x180.png">
   <link rel="icon" sizes="192x192" href="asset/icon/favicon-192x192.png">
   <link rel="icon" sizes="512x512" href="asset/icon/favicon-192x192.png">
+  <link rel="stylesheet/less" type="text/css" href="styles.less" />
   <title>Uonihon</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.1.3/less.min.js" ></script>
+  <script src="https://cdn.jsdelivr.net/npm/less"></script>
 </head>
 
-<body class="full-height">
+<body>
 
   <script>
 
@@ -32,34 +32,142 @@
         .then((json) => console.log(json));
     }
 
+    function setVisibleMainTab(tab) {
+      var kanaTabNode = document.querySelector('.kanaTab');
+      var kanjiTabNode = document.querySelector('.kanjiTab');
+      var vocabularyTabNode = document.querySelector('.vocabularyTab');
+      var toSetVisibleNode = document.querySelector('.' + tab);
+      kanaTabNode.style.visibility = 'collapse';
+      kanjiTabNode.style.visibility = 'collapse';
+      vocabularyTabNode.style.visibility = 'collapse';
+      toSetVisibleNode.style.visibility = 'visible';
+      color = ""
+      switch (tab) {
+        case 'kanjiTab':
+          color="lighten(@secondary,10%)"
+          break;
+        case 'kanaTab':
+          color="lighten(@tertiary,10%)"
+          break;
+        default:
+          color="lighten(@primary,10%)"
+      }
+      less.modifyVars({
+        '@current-tab-color': color,
+      });
+    }
+
+    function setVisibleSubTab(tab) {
+      var produceTabNode = document.querySelector('.produceTab');
+      var consumeTabNode = document.querySelector('.consumeTab');
+      var toSetVisibleNode = document.querySelector('.' + tab);
+      produceTabNode.style.visibility = 'collapse';
+      consumeTabNode.style.visibility = 'collapse';
+      toSetVisibleNode.style.visibility = 'visible';
+    }
+
   </script>
 
-  <div  style="height: 100%; position: absolute; width: 100%;">
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <button onclick="doSomething('this is a string')">THE BUTTON</button>
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <div class="bottom-tabs">
-      <div>
-        <img class="tab-icon" src="asset/HiraganaKa.png"/>
-        Kana
+  <div class="app-container">
+    <div class="main-view-containers">
+      <div class="main-view-container vocabularyTab" style="visibility: visible;">
+
+          <div class="primary-card word-title ">
+            血族
+          </div>
+          
+          <section class="reading">
+            <h2>Reading</h2>
+            
+            <div class="primary-card">
+              <div class="reading-text">けつぞく</div>
+            </div>
+            
+          </section>
+          
+          <section class="meaning">
+            <h2>Meanings</h2>
+            
+            <div class="primary-card">
+            <div class="meaning-text">Blood Relative</div></div>
+            
+            <div class="primary-card">
+            <div class="meaning-text">Parent</div></div>
+          </section>
+          
+          <section class="sentences">
+            <h2>Sentences</h2>
+            <div class="primary-card">
+              <div class="japanese">法定血族関係が生じるのは養子縁組をした場合のみです。</div>
+              <div class="english">A legal blood relationship only arises in the case of adoption.</div>
+            </div>
+            <div class="primary-card">
+              <div class="japanese">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
+              <div class="english">There is a special exemption for gifts of housing acquisition funds from direct blood relatives, allowing up to 15 million yen to be tax-free.</div>
+            </div>
+          </section>
+
       </div>
-      <div>
-        <img class="tab-icon" src="asset/complicatedKanji.png"/>
-        Kanji
+      <div class="main-view-container kanjiTab" style="visibility: collapse;">
+        this is the kanji tab Start
+        <div class="wideguy secondary-background"></div>
+        this is the kanji tab End
       </div>
-      <div>
-        <img class="tab-icon" src="asset/letterW.png"/>
-        Vocabulary
+      <div class="main-view-container kanaTab" style="visibility: collapse;">
+        this is the kana tab Start
+        <div class="wideguy tertiary-background"></div>
+        this is the kana tab End
       </div>
     </div>
+  
+    <!-- SUB FOOTER TABS -->
+    <div class="tabs-container sub-sub-tabs-container">
+      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+        <img class="tab-icon" src="asset/list.png" alt="Vocabulary icon">
+        <span class="tab-text">List</span>
+      </div>
+      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+        <img class="tab-icon" src="asset/next.png" alt="Vocabulary icon">
+        <span class="tab-text">Next</span>
+      </div>
+      <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
+        <img class="tab-icon" src="asset/search.png" alt="Kanji icon">
+        <span class="tab-text">Search</span>
+      </div>
+    </div>
+  
+    <!-- SUB FOOTER TABS -->
+    <div class="tabs-container sub-tabs-container">
+      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+        <img class="tab-icon" src="asset/arrow-down.png" alt="Vocabulary icon">
+        <span class="tab-text">Read and Listen</span>
+      </div>
+      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+        <img class="tab-icon" src="asset/cross.png" alt="Vocabulary icon">
+        <span class="tab-text">Add</span>
+      </div>
+      <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
+        <img class="tab-icon" src="asset/arrow-up.png" alt="Kanji icon">
+        <span class="tab-text">Write and Speak</span>
+      </div>
+    </div>
+
+    <!-- MAIN FOOTER TABS -->
+    <div class="tabs-container main-tabs-container">
+      <div class="tab three-tabs vocabularyTab" onclick="setVisibleMainTab('vocabularyTab')">
+        <img class="tab-icon" src="asset/letterW.png" alt="Vocabulary icon">
+        <span class="tab-text">Vocabulary</span>
+      </div>
+      <div class="tab three-tabs kanjiTab" onclick="setVisibleMainTab('kanjiTab')">
+        <img class="tab-icon" src="asset/complicatedKanji.png" alt="Kanji icon">
+        <span class="tab-text">Kanji</span>
+      </div>
+      <div class="tab three-tabs kanaTab" onclick="setVisibleMainTab('kanaTab')">
+        <img class="tab-icon" src="asset/HiraganaKa.png" alt="Kana icon">
+        <span class="tab-text">Kana</span>
+      </div>
+    </div>
+
   </div>
 
 </body>
