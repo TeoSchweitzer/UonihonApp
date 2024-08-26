@@ -66,6 +66,15 @@
       toSetVisibleNode.style.visibility = 'visible';
     }
 
+    function obfuscation(id) {
+      let element = document.getElementById(id)
+      if (element.classList.contains("obfuscated")) {
+        element.classList.remove("obfuscated");
+      } else {
+        element.classList.add("obfuscated");
+      }
+    }
+
   </script>
 
   <div class="app-container">
@@ -74,14 +83,16 @@
         
         <div class="card-container">
 
-          <div class="card two">
-              <div class="label">Mot</div>
-              <div class="card-inner short obfuscated">血族</div>
+          <div class="card two" onclick="obfuscation('word')">
+            <div class="label">Mot</div>
+            <div id='word' class="card-inner short" >
+              血族血族血族血族
+            </div>
           </div>
           
-          <div class="card two">
+          <div class="card two" onclick="obfuscation('spelling')">
             <div class="label">Prononciation</div>
-            <div class="card-inner short">けつぞ</div>
+            <div id="spelling" class="card-inner short">けつぞけつぞけつぞけつぞ</div>
           </div>
 
         </div>
@@ -89,51 +100,77 @@
         <div class="line"> </div>
 
         <div class="card-container">
-          <div class="card two long meaning-text">
-            Blood Relative
+          
+          <div class="card two" onclick="obfuscation('meaning1')">
+            <div class="label">Sens Principal</div>
+            <div id="meaning1" class="card-inner long">Blood Relative</div>
           </div>
-          <div class="card two long meaning-text">
-            Parent
+
+          <div class="card two" onclick="obfuscation('meaning2')">
+            <div class="label">Autres Sens</div>
+            <div id="meaning2" class="card-inner long">
+              <div>relation en forme de coeur</div>
+              <div>sang</div>
+              <div>mort</div>
+            </div>
           </div>
+
         </div>
 
         <div class="line"> </div>
 
-        <div class="card one long">
-          Explication sur le mot
+        <div class="card one" onclick="obfuscation('explainer')">
+          <div class="label">Explication</div>
+          <div id="explainer" class="card-inner long">Explication sur le mot Explicatot Explicat ion sur le mo tcation sur ot Explicat ion sur le mo tcation surion sur le moot Explicat ion sur le mo tcation sur tcation sur  le motot Explicat ion sur le mo tcation surcat ion sur l e mot Expli cation sur le mot Explication sur le mot Explication sur le mot Explication sur le mot Explication sur le mot Explication surcation sur le mot le motcation sur le mot Explication sur le motcation sur le mot Explication sur le mot </div>
         </div>
 
         <div class="line"> </div>
           
-        <div class="card one long">
-          法定血族関係が生じるのは養子縁組をした場合のみです。
+        
+        <div class="card one" onclick="obfuscation('sentence1')">
+          <div class="label">Phrase 1</div>
+          <div id="sentence1" class="card-inner long">法定血族関係が生じるのは養子縁組をした場合のみです。</div>
         </div>
-        <div class="card one long">
-          A legal blood relationship only arises in the case of adoption.
-        </div>
-        <div class="line"> </div>
-        <div class="card one long">
-          直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。
-        </div>
-        <div class="card one long">
-          There is a special exemption for gifts of housing acquisition funds from direct blood relatives.
-        </div>
-        <div class="line"> </div>
-        <div class="card one long">
-          直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。
-        </div>
-        <div class="card one long">
-          There is a special exemption for gifts of housing acquisition funds from direct blood relatives.
-        </div>
-        <div class="line"> </div>
-        <div class="card one long">
-          直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。
-        </div>
-        <div class="card one long">
-          There is a special exemption for gifts of housing acquisition funds from direct blood relatives.
+        <div class="card one" onclick="obfuscation('translation1')">
+          <div class="label">Traduction 1</div>
+          <div id="translation1" class="card-inner long">A legal blood relationship only arises in the case of adoption.</div>
         </div>
 
+        <div class="line"> </div>
 
+        
+        <div class="card one" onclick="obfuscation('sentence2')">
+          <div class="label">Phrase 2</div>
+          <div id="sentence2" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
+        </div>
+        <div class="card one" onclick="obfuscation('translation2')">
+          <div class="label">Traduction 2</div>
+          <div id="translation2" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
+        </div>
+
+        <div class="line"> </div>
+
+        
+        <div class="card one" onclick="obfuscation('sentence3')">
+          <div class="label">Phrase 3</div>
+          <div id="sentence3" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
+        </div>
+        <div class="card one" onclick="obfuscation('translation3')">
+          <div class="label">Traduction 3</div>
+          <div id="translation3" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
+        </div>
+
+        <div class="line"> </div>
+
+        <div class="card one" onclick="obfuscation('sentence4')">
+          <div class="label">Phrase 4</div>
+          <div id="sentence4" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
+        </div>
+        <div class="card one" onclick="obfuscation('translation4')">
+          <div class="label">Traduction 4</div>
+          <div id="translation4" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
+        </div>
+        
       </div>
       <div class="main-view-container kanjiTab" style="visibility: collapse;">
         this is the kanji tab Start
