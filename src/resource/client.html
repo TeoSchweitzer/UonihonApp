@@ -14,12 +14,58 @@
   <script src="https://cdn.jsdelivr.net/npm/less"></script>
 </head>
 
-<body>
+<body onload="initUonihon()">
 
   <script>
 
+    const HOST = "http://192.168.1.86:8080"
+
+    function initUonihon() {
+      console.log("OKDOKO")
+      nextWord()
+    }
+
+    function nextWord() {
+      fetch(HOST + "/word", {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        }
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          console.log(json);
+          resetObfuscation();
+          obfuscation('word');
+          obfuscation('reading');
+          obfuscation('explainer');
+          document.getElementById('word').innerText = json.word??"";
+          document.getElementById('reading').innerText = json.reading??"";
+          document.getElementById('meaning').innerText = json.meaning??"";
+          document.getElementById('alternative').innerText = json.alternative??"";
+          document.getElementById('explainer').innerText = (json.explainer?.replace(/\\n/g, "\n"))??"";
+
+          var sentences = document.getElementById('sentences-container');
+          sentences.replaceChildren();
+          (json.sentences??[])?.forEach(function (sentence, i) {
+            let htmlSentence = `
+              <div class="line"> </div>
+              <div class="card one" onclick="obfuscation('sentence${i+1}')">
+                <div class="label">Phrase ${i+1}</div>
+                <div id="sentence${i+1}" class="card-inner obfuscated long">${sentence.japanese}</div>
+              </div>
+              <div class="card one" onclick="obfuscation('translation${i+1}')">
+                <div class="label">Traduction ${i+1}</div>
+                <div id="translation${i+1}" class="card-inner long">${sentence.translation}</div>
+              </div>
+            `
+            sentences.insertAdjacentHTML('beforeend', htmlSentence)
+          });
+        });
+    }
+
     function doSomething(toWrite) {
-      fetch("http://localhost:8080/kanjis", {
+      fetch(HOST + "kanjis", {
         method: "POST",
         body: JSON.stringify({
           message: toWrite
@@ -66,6 +112,15 @@
       toSetVisibleNode.style.visibility = 'visible';
     }
 
+    function resetObfuscation() {
+      let elements = document.getElementsByClassName("card-inner")
+      Array.from(elements).forEach(e => {
+        if (e.classList.contains("obfuscated")) {
+            e.classList.remove("obfuscated");
+        }
+      })
+    }
+
     function obfuscation(id) {
       let element = document.getElementById(id)
       if (element.classList.contains("obfuscated")) {
@@ -86,13 +141,12 @@
           <div class="card two" onclick="obfuscation('word')">
             <div class="label">Mot</div>
             <div id='word' class="card-inner short" >
-              血族血族血族血族
             </div>
           </div>
           
-          <div class="card two" onclick="obfuscation('spelling')">
+          <div class="card two" onclick="obfuscation('reading')">
             <div class="label">Prononciation</div>
-            <div id="spelling" class="card-inner short">けつぞけつぞけつぞけつぞ</div>
+            <div id="reading" class="card-inner short"></div>
           </div>
 
         </div>
@@ -101,17 +155,14 @@
 
         <div class="card-container">
           
-          <div class="card two" onclick="obfuscation('meaning1')">
+          <div class="card two" onclick="obfuscation('meaning')">
             <div class="label">Sens Principal</div>
-            <div id="meaning1" class="card-inner long">Blood Relative</div>
+            <div id="meaning" class="card-inner long"></div>
           </div>
 
-          <div class="card two" onclick="obfuscation('meaning2')">
+          <div class="card two" onclick="obfuscation('alternative')">
             <div class="label">Autres Sens</div>
-            <div id="meaning2" class="card-inner long">
-              <div>relation en forme de coeur</div>
-              <div>sang</div>
-              <div>mort</div>
+            <div id="alternative" class="card-inner long">
             </div>
           </div>
 
@@ -121,57 +172,15 @@
 
         <div class="card one" onclick="obfuscation('explainer')">
           <div class="label">Explication</div>
-          <div id="explainer" class="card-inner long">Explication sur le mot Explicatot Explicat ion sur le mo tcation sur ot Explicat ion sur le mo tcation surion sur le moot Explicat ion sur le mo tcation sur tcation sur  le motot Explicat ion sur le mo tcation surcat ion sur l e mot Expli cation sur le mot Explication sur le mot Explication sur le mot Explication sur le mot Explication sur le mot Explication surcation sur le mot le motcation sur le mot Explication sur le motcation sur le mot Explication sur le mot </div>
+          <div id="explainer" class="card-inner long"></div>
         </div>
 
-        <div class="line"> </div>
-          
-        
-        <div class="card one" onclick="obfuscation('sentence1')">
-          <div class="label">Phrase 1</div>
-          <div id="sentence1" class="card-inner long">法定血族関係が生じるのは養子縁組をした場合のみです。</div>
-        </div>
-        <div class="card one" onclick="obfuscation('translation1')">
-          <div class="label">Traduction 1</div>
-          <div id="translation1" class="card-inner long">A legal blood relationship only arises in the case of adoption.</div>
+        <div id="sentences-container">
         </div>
 
-        <div class="line"> </div>
-
-        
-        <div class="card one" onclick="obfuscation('sentence2')">
-          <div class="label">Phrase 2</div>
-          <div id="sentence2" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
-        </div>
-        <div class="card one" onclick="obfuscation('translation2')">
-          <div class="label">Traduction 2</div>
-          <div id="translation2" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
-        </div>
-
-        <div class="line"> </div>
-
-        
-        <div class="card one" onclick="obfuscation('sentence3')">
-          <div class="label">Phrase 3</div>
-          <div id="sentence3" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
-        </div>
-        <div class="card one" onclick="obfuscation('translation3')">
-          <div class="label">Traduction 3</div>
-          <div id="translation3" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
-        </div>
-
-        <div class="line"> </div>
-
-        <div class="card one" onclick="obfuscation('sentence4')">
-          <div class="label">Phrase 4</div>
-          <div id="sentence4" class="card-inner long">直系血族からの住宅取得等資金の贈与には、 特例制度で最高１５００万円までの非課税枠があります。</div>
-        </div>
-        <div class="card one" onclick="obfuscation('translation4')">
-          <div class="label">Traduction 4</div>
-          <div id="translation4" class="card-inner long">There is a special exemption for gifts of housing acquisition funds from direct blood relatives.</div>
-        </div>
-        
       </div>
+
+
       <div class="main-view-container kanjiTab" style="visibility: collapse;">
         this is the kanji tab Start
         <div class="wideguy secondary-background"></div>
@@ -190,7 +199,7 @@
         <img class="tab-icon" src="asset/list.png" alt="Vocabulary icon">
         <span class="tab-text">List</span>
       </div>
-      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+      <div class="tab three-tabs" onclick="nextWord()">
         <img class="tab-icon" src="asset/next.png" alt="Vocabulary icon">
         <span class="tab-text">Next</span>
       </div>

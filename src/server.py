@@ -1,5 +1,4 @@
 from bottle import *
-from controller import kanjis
 
 # This route capture all route for method OPTIONS
 @route('/<:re:.*>', method='OPTIONS')
@@ -19,6 +18,9 @@ def apply_cors():
 
 app = default_app()
 app.add_hook('after_request', apply_cors)
+
+from controller import kanjis
+from controller import words
 
 @route('/', method='GET') 
 def getHome():
