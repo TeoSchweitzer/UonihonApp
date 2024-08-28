@@ -2,246 +2,305 @@
 <html>
 
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="asset/icon/favicon.ico">
-  <link rel="icon" sizes="16x16" href="asset/icon/favicon-16x16.png">
-  <link rel="icon" sizes="32x32" href="asset/icon/favicon-32x32.png">
-  <link rel="icon" sizes="180x180" href="asset/icon/favicon-180x180.png">
-  <link rel="icon" sizes="192x192" href="asset/icon/favicon-192x192.png">
-  <link rel="icon" sizes="512x512" href="asset/icon/favicon-192x192.png">
-  <link rel="stylesheet/less" type="text/css" href="styles.less" />
-  <title>Uonihon</title>
-  <script src="https://cdn.jsdelivr.net/npm/less"></script>
+    <meta charset="UTF-8">
+    <link rel="icon" href="asset/icon/favicon.ico">
+    <link rel="icon" sizes="16x16" href="asset/icon/favicon-16x16.png">
+    <link rel="icon" sizes="32x32" href="asset/icon/favicon-32x32.png">
+    <link rel="icon" sizes="180x180" href="asset/icon/favicon-180x180.png">
+    <link rel="icon" sizes="192x192" href="asset/icon/favicon-192x192.png">
+    <link rel="icon" sizes="512x512" href="asset/icon/favicon-192x192.png">
+    <link rel="stylesheet/less" type="text/css" href="styles.less" />
+    <title>Uonihon</title>
+    <script src="https://cdn.jsdelivr.net/npm/less"></script>
 </head>
 
 <body onload="initUonihon()">
 
-  <script>
+    <script>
 
-    const HOST = "http://192.168.1.86:8080"
+        const HOST = "http://192.168.1.86:8080"
 
-    function initUonihon() {
-      console.log("OKDOKO")
-      nextWord()
-    }
+        let words = ""
+        let sentences = ""
+        let usage = ""
 
-    function nextWord() {
-      fetch(HOST + "/word", {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
+        function initUonihon() {
+            fetch(HOST + "/word/words/all", {
+                method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
+            }).then((response) => response.text()).then((response) => {
+                words = response;
+            });
+            fetch(HOST + "/word/sentences/all", {
+                method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
+            }).then((response) => response.text()).then((response) => {
+                sentences = response;
+            });
+            fetch(HOST + "/word/usage/all", {
+                method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
+            }).then((response) => response.text()).then((response) => {
+                usage = response;
+            });
+            getWord(null, 'japanese')
         }
-      })
-        .then((response) => response.json())
-        .then((json) => {
-          console.log(json);
-          resetObfuscation();
-          obfuscation('word');
-          obfuscation('reading');
-          obfuscation('explainer');
-          document.getElementById('word').innerText = json.word??"";
-          document.getElementById('reading').innerText = json.reading??"";
-          document.getElementById('meaning').innerText = json.meaning??"";
-          document.getElementById('alternative').innerText = json.alternative??"";
-          document.getElementById('explainer').innerText = (json.explainer?.replace(/\\n/g, "\n"))??"";
 
-          var sentences = document.getElementById('sentences-container');
-          sentences.replaceChildren();
-          (json.sentences??[])?.forEach(function (sentence, i) {
-            let htmlSentence = `
+        function getWord(wordId, obfuscate) {
+            fetch(HOST + "/word" + (wordId ? `/${wordId}` : ""), {
+                method: "GET",
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8",
+                }
+            })
+                .then((response) => response.json())
+                .then((json) => {
+                    console.log(json);
+                    resetObfuscation();
+                    if (obfuscate=="japanese") {
+                        obfuscation('word');
+                        obfuscation('reading');
+                        obfuscation('explainer');
+                    } else if (obfuscate=="translation"){
+                        obfuscation('meaning');
+                        obfuscation('reading');
+                        obfuscation('alternative');
+                        obfuscation('explainer');
+                    }
+                    obf = v => ((v=='jp' && obfuscate=="japanese") || (v=='tr' && obfuscate=="translation")) ? 'obfuscated' : ''
+                    document.getElementById('word').innerText = json.word ?? "";
+                    document.getElementById('reading').innerText = json.reading ?? "";
+                    document.getElementById('meaning').innerText = json.meaning ?? "";
+                    document.getElementById('alternative').innerText = json.alternative ?? "";
+                    document.getElementById('explainer').innerText = (json.explainer?.replace(/\\n/g, "\n")) ?? "";
+
+                    var sentences = document.getElementById('sentences-container');
+                    sentences.replaceChildren();
+                    (json.sentences ?? [])?.forEach(function (sentence, i) {
+                        let htmlSentence = `
               <div class="line"> </div>
-              <div class="card one" onclick="obfuscation('sentence${i+1}')">
-                <div class="label">Phrase ${i+1}</div>
-                <div id="sentence${i+1}" class="card-inner obfuscated long">${sentence.japanese}</div>
+              <div class="card one" onclick="obfuscation('sentence${i + 1}')">
+                <div class="label">Phrase ${i + 1}</div>
+                <div id="sentence${i + 1}" class="card-inner ${obf('jp')} long">${sentence.japanese}</div>
               </div>
-              <div class="card one" onclick="obfuscation('translation${i+1}')">
-                <div class="label">Traduction ${i+1}</div>
-                <div id="translation${i+1}" class="card-inner long">${sentence.translation}</div>
+              <div class="card one" onclick="obfuscation('translation${i + 1}')">
+                <div class="label">Traduction ${i + 1}</div>
+                <div id="translation${i + 1}" class="card-inner ${obf('tr')} long">${sentence.translation}</div>
               </div>
             `
-            sentences.insertAdjacentHTML('beforeend', htmlSentence)
-          });
-        });
-    }
-
-    function doSomething(toWrite) {
-      fetch(HOST + "kanjis", {
-        method: "POST",
-        body: JSON.stringify({
-          message: toWrite
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"
+                        sentences.insertAdjacentHTML('beforeend', htmlSentence)
+                    });
+                });
         }
-      })
-        .then((response) => response.json())
-        .then((json) => console.log(json));
-    }
 
-    function setVisibleMainTab(tab) {
-      var kanaTabNode = document.querySelector('.kanaTab');
-      var kanjiTabNode = document.querySelector('.kanjiTab');
-      var vocabularyTabNode = document.querySelector('.vocabularyTab');
-      var toSetVisibleNode = document.querySelector('.' + tab);
-      kanaTabNode.style.visibility = 'collapse';
-      kanjiTabNode.style.visibility = 'collapse';
-      vocabularyTabNode.style.visibility = 'collapse';
-      toSetVisibleNode.style.visibility = 'visible';
-      color = ""
-      switch (tab) {
-        case 'kanjiTab':
-          color="lighten(@secondary,10%)"
-          break;
-        case 'kanaTab':
-          color="lighten(@tertiary,10%)"
-          break;
-        default:
-          color="lighten(@primary,10%)"
-      }
-      less.modifyVars({
-        '@current-tab-color': color,
-      });
-    }
-
-    function setVisibleSubTab(tab) {
-      var produceTabNode = document.querySelector('.produceTab');
-      var consumeTabNode = document.querySelector('.consumeTab');
-      var toSetVisibleNode = document.querySelector('.' + tab);
-      produceTabNode.style.visibility = 'collapse';
-      consumeTabNode.style.visibility = 'collapse';
-      toSetVisibleNode.style.visibility = 'visible';
-    }
-
-    function resetObfuscation() {
-      let elements = document.getElementsByClassName("card-inner")
-      Array.from(elements).forEach(e => {
-        if (e.classList.contains("obfuscated")) {
-            e.classList.remove("obfuscated");
+        function doSomething(toWrite) {
+            fetch(HOST + "kanjis", {
+                method: "POST",
+                body: JSON.stringify({
+                    message: toWrite
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+                .then((response) => response.json())
+                .then((json) => console.log(json));
         }
-      })
-    }
 
-    function obfuscation(id) {
-      let element = document.getElementById(id)
-      if (element.classList.contains("obfuscated")) {
-        element.classList.remove("obfuscated");
-      } else {
-        element.classList.add("obfuscated");
-      }
-    }
+        function setVisibleMainTab(tab) {
+            var kanaTabNode = document.querySelector('.kanaTab');
+            var kanjiTabNode = document.querySelector('.kanjiTab');
+            var vocabularyTabNode = document.querySelector('.vocabularyTab');
+            var toSetVisibleNode = document.querySelector('.' + tab);
+            kanaTabNode.style.visibility = 'collapse';
+            kanjiTabNode.style.visibility = 'collapse';
+            vocabularyTabNode.style.visibility = 'collapse';
+            toSetVisibleNode.style.visibility = 'visible';
+            color = ""
+            switch (tab) {
+                case 'kanjiTab':
+                    color = "lighten(@secondary,10%)"
+                    break;
+                case 'kanaTab':
+                    color = "lighten(@tertiary,10%)"
+                    break;
+                default:
+                    color = "lighten(@primary,10%)"
+            }
+            less.modifyVars({
+                '@current-tab-color': color,
+            });
+        }
 
-  </script>
+        function switchWordListVisibility() {
+            var listNode = document.querySelector('.word-list-container');
+            var testNode = document.querySelector('.word-test-container');
+            var listTableNode = document.querySelector('#word-list-table');
+            if (listNode.style.visibility == 'collapse') {
+                listNode.style.visibility = 'visible'
+                testNode.style.visibility = 'collapse';
+                listTableNode.replaceChildren();
+                console.log(words)
+                words.split('\n').forEach(function (wordLine, i) {
+                    if (wordLine == "") return
+                    let splittedLine = wordLine.split('|')
+                    let htmlSentence = `
+                    <tr id="wordListIdx${i + 1}" onclick="(() => {console.log('lololo'); getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
+                        <td>${splittedLine[1]}</td>
+                        <td>${splittedLine[2]}</td>
+                        <td>${splittedLine[3]}</td>
+                        <td>${splittedLine[4]}</td>
+                    </tr>`
+                    listTableNode.insertAdjacentHTML('beforeend', htmlSentence)
+                });
+            } else {
+                listNode.style.visibility = 'collapse';
+                testNode.style.visibility = 'visible';
+            }
+        }
 
-  <div class="app-container">
-    <div class="main-view-containers">
-      <div class="main-view-container vocabularyTab">
-        
-        <div class="card-container">
+        function resetObfuscation() {
+            console.log("reset")
+            let elements = document.getElementsByClassName("card-inner")
+            Array.from(elements).forEach(e => {
+                if (e.classList.contains("obfuscated")) {
+                    e.classList.remove("obfuscated");
+                }
+            })
+        }
 
-          <div class="card two" onclick="obfuscation('word')">
-            <div class="label">Mot</div>
-            <div id='word' class="card-inner short" >
+        function obfuscation(id) {
+            let element = document.getElementById(id)
+            if (element.classList.contains("obfuscated")) {
+                element.classList.remove("obfuscated");
+            } else {
+                element.classList.add("obfuscated");
+            }
+        }
+
+    </script>
+
+    <div class="app-container">
+        <div class="main-view-containers">
+            <div class="main-view-container vocabularyTab">
+
+                <div class="word-list-container" style="visibility: collapse;">
+                    <table class="elegant-table"><thead>
+                        <tr>
+                          <th>Mot</th>
+                          <th>Prononciation</th>
+                          <th>Sens</th>
+                          <th>Autres Sens</th>
+                        </tr></thead>
+                      <tbody id="word-list-table">
+                      </tbody>
+                      </table>
+                </div>
+
+                <div class="word-test-container">
+                    <div class="card-container">
+
+                        <div class="card two" onclick="obfuscation('word')">
+                            <div class="label">Mot</div>
+                            <div id='word' class="card-inner short">
+                            </div>
+                        </div>
+
+                        <div class="card two" onclick="obfuscation('reading')">
+                            <div class="label">Prononciation</div>
+                            <div id="reading" class="card-inner short"></div>
+                        </div>
+
+                    </div>
+
+                    <div class="line"> </div>
+
+                    <div class="card-container">
+
+                        <div class="card two" onclick="obfuscation('meaning')">
+                            <div class="label">Sens Principal</div>
+                            <div id="meaning" class="card-inner long"></div>
+                        </div>
+
+                        <div class="card two" onclick="obfuscation('alternative')">
+                            <div class="label">Autres Sens</div>
+                            <div id="alternative" class="card-inner long">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="line"> </div>
+
+                    <div class="card one" onclick="obfuscation('explainer')">
+                        <div class="label">Explications</div>
+                        <div id="explainer" class="card-inner long"></div>
+                    </div>
+
+                    <div id="sentences-container">
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <div class="card two" onclick="obfuscation('reading')">
-            <div class="label">Prononciation</div>
-            <div id="reading" class="card-inner short"></div>
-          </div>
 
-        </div>
 
-        <div class="line"> </div>
-
-        <div class="card-container">
-          
-          <div class="card two" onclick="obfuscation('meaning')">
-            <div class="label">Sens Principal</div>
-            <div id="meaning" class="card-inner long"></div>
-          </div>
-
-          <div class="card two" onclick="obfuscation('alternative')">
-            <div class="label">Autres Sens</div>
-            <div id="alternative" class="card-inner long">
+            <div class="main-view-container kanjiTab" style="visibility: collapse;">
+                this is the kanji tab Start
+                <div class="wideguy secondary-background"></div>
+                this is the kanji tab End
             </div>
-          </div>
-
+            <div class="main-view-container kanaTab" style="visibility: collapse;">
+                this is the kana tab Start
+                <div class="wideguy tertiary-background"></div>
+                this is the kana tab End
+            </div>
         </div>
 
-        <div class="line"> </div>
-
-        <div class="card one" onclick="obfuscation('explainer')">
-          <div class="label">Explication</div>
-          <div id="explainer" class="card-inner long"></div>
+        <!-- SUB FOOTER TABS -->
+        <div class="tabs-container sub-sub-tabs-container">
+            <div class="tab three-tabs" onclick="switchWordListVisibility()">
+                <img class="tab-icon" src="asset/list.png" alt="Vocabulary icon">
+                <span class="tab-text">List</span>
+            </div>
+            <div class="tab three-tabs" onclick="getWord()">
+                <img class="tab-icon" src="asset/next.png" alt="Vocabulary icon">
+                <span class="tab-text">Next</span>
+            </div>
+            <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
+                <img class="tab-icon" src="asset/search.png" alt="Kanji icon">
+                <span class="tab-text">Search</span>
+            </div>
         </div>
 
-        <div id="sentences-container">
+        <!-- SUB FOOTER TABS -->
+        <div class="tabs-container sub-tabs-container">
+            <div class="tab three-tabs" onclick="getWord(null, 'translation')">
+                <img class="tab-icon" src="asset/arrow-down.png" alt="Vocabulary icon">
+                <span class="tab-text">Read and Listen</span>
+            </div>
+            <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
+                <img class="tab-icon" src="asset/cross.png" alt="Vocabulary icon">
+                <span class="tab-text">Add</span>
+            </div>
+            <div class="tab three-tabs" onclick="getWord(null, 'japanese')">
+                <img class="tab-icon" src="asset/arrow-up.png" alt="Kanji icon">
+                <span class="tab-text">Write and Speak</span>
+            </div>
         </div>
 
-      </div>
+        <!-- MAIN FOOTER TABS -->
+        <div class="tabs-container main-tabs-container">
+            <div class="tab three-tabs vocabularyTab" onclick="setVisibleMainTab('vocabularyTab')">
+                <img class="tab-icon" src="asset/letterW.png" alt="Vocabulary icon">
+                <span class="tab-text">Vocabulary</span>
+            </div>
+            <div class="tab three-tabs kanjiTab" onclick="setVisibleMainTab('kanjiTab')">
+                <img class="tab-icon" src="asset/complicatedKanji.png" alt="Kanji icon">
+                <span class="tab-text">Kanji</span>
+            </div>
+            <div class="tab three-tabs kanaTab" onclick="setVisibleMainTab('kanaTab')">
+                <img class="tab-icon" src="asset/HiraganaKa.png" alt="Kana icon">
+                <span class="tab-text">Kana</span>
+            </div>
+        </div>
 
-
-      <div class="main-view-container kanjiTab" style="visibility: collapse;">
-        this is the kanji tab Start
-        <div class="wideguy secondary-background"></div>
-        this is the kanji tab End
-      </div>
-      <div class="main-view-container kanaTab" style="visibility: collapse;">
-        this is the kana tab Start
-        <div class="wideguy tertiary-background"></div>
-        this is the kana tab End
-      </div>
     </div>
-  
-    <!-- SUB FOOTER TABS -->
-    <div class="tabs-container sub-sub-tabs-container">
-      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
-        <img class="tab-icon" src="asset/list.png" alt="Vocabulary icon">
-        <span class="tab-text">List</span>
-      </div>
-      <div class="tab three-tabs" onclick="nextWord()">
-        <img class="tab-icon" src="asset/next.png" alt="Vocabulary icon">
-        <span class="tab-text">Next</span>
-      </div>
-      <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
-        <img class="tab-icon" src="asset/search.png" alt="Kanji icon">
-        <span class="tab-text">Search</span>
-      </div>
-    </div>
-  
-    <!-- SUB FOOTER TABS -->
-    <div class="tabs-container sub-tabs-container">
-      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
-        <img class="tab-icon" src="asset/arrow-down.png" alt="Vocabulary icon">
-        <span class="tab-text">Read and Listen</span>
-      </div>
-      <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
-        <img class="tab-icon" src="asset/cross.png" alt="Vocabulary icon">
-        <span class="tab-text">Add</span>
-      </div>
-      <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
-        <img class="tab-icon" src="asset/arrow-up.png" alt="Kanji icon">
-        <span class="tab-text">Write and Speak</span>
-      </div>
-    </div>
-
-    <!-- MAIN FOOTER TABS -->
-    <div class="tabs-container main-tabs-container">
-      <div class="tab three-tabs vocabularyTab" onclick="setVisibleMainTab('vocabularyTab')">
-        <img class="tab-icon" src="asset/letterW.png" alt="Vocabulary icon">
-        <span class="tab-text">Vocabulary</span>
-      </div>
-      <div class="tab three-tabs kanjiTab" onclick="setVisibleMainTab('kanjiTab')">
-        <img class="tab-icon" src="asset/complicatedKanji.png" alt="Kanji icon">
-        <span class="tab-text">Kanji</span>
-      </div>
-      <div class="tab three-tabs kanaTab" onclick="setVisibleMainTab('kanaTab')">
-        <img class="tab-icon" src="asset/HiraganaKa.png" alt="Kana icon">
-        <span class="tab-text">Kana</span>
-      </div>
-    </div>
-
-  </div>
 
 </body>
 

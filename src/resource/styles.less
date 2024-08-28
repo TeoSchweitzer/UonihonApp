@@ -58,12 +58,15 @@ body {
     .main-view-container {
       display: flex;
       flex-flow: column;
-      align-items: center;
       height: 100%;
-      padding: 5px 15px;
+      padding: 5px 0;
 
       #sentences-container {
         width: 100%;
+      }
+
+      .word-test-container {
+        padding: 0 15px;
       }
 
       .title {
@@ -207,4 +210,33 @@ body {
   width: 100%;
   height: 3px;
   background-color: @white;
+}
+
+
+
+.elegant-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 24px;
+  text-wrap: nowrap;
+  border: 1px solid #ffffff;
+}
+
+.elegant-table th {
+  background-color: #f8f8f8;
+  color: #333333;
+  font-weight: bold;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #ffffff;
+}
+
+.elegant-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ffffff;
+}
+
+.elegant-table tr:nth-child(even) {
+  background-color: @primary;
 }

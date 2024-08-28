@@ -45,5 +45,5 @@ id | word | meaning | alternative | reading | explanation
 
 id | sentence | translation
 
-id | unlocked | use_kanji | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read | last_write 
+id | unlocked | hide_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read | last_write 
 '''
