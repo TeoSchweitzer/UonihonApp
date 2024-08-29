@@ -220,21 +220,22 @@ body {
   width: 100%;
   font-size: 24px;
   text-wrap: nowrap;
-  border: 1px solid #ffffff;
+  border: 1px solid @white;
 }
 
 .elegant-table th {
-  background-color: #f8f8f8;
-  color: #333333;
-  font-weight: bold;
+  background-color: @black;
+  color: darken(@white,15%);
+  font-style: italic;
+  font-weight: 900;
   padding: 12px;
   text-align: left;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 2px solid @white;
 }
 
 .elegant-table td {
   padding: 10px;
-  border-bottom: 1px solid #ffffff;
+  border-bottom: 1px solid @white;
 }
 
 .elegant-table tr:nth-child(even) {

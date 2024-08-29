@@ -1,4 +1,6 @@
 from bottle import *
+from controller import kanjis
+from controller import words
 
 # This route capture all route for method OPTIONS
 @route('/<:re:.*>', method='OPTIONS')
@@ -19,9 +21,6 @@ def apply_cors():
 app = default_app()
 app.add_hook('after_request', apply_cors)
 
-from controller import kanjis
-from controller import words
-
 @route('/', method='GET') 
 def getHome():
     theResource = None
@@ -36,4 +35,4 @@ def getAsset(resource):
         theResource = theFile.read()
     return theResource
 
-run(app=app, host='192.168.1.86', port=8080, debug=True)  
+run(app=app, host='192.168.1.86', port=8080, debug=True)
