@@ -15,6 +15,7 @@ def wordGet(id="chooseBest"):
     wordsList = []
     sentencesList = []
     usageList = []
+    focus = request.query.focus or 'reading'
 
     with open('resource\\data\\words\\words.txt', 'r', encoding="utf-8") as wordsFile:
         wordsList = wordsFile.read().splitlines()
@@ -26,10 +27,12 @@ def wordGet(id="chooseBest"):
     current_time = datetime.datetime.now()
 
     if (id=="chooseBest"):
-        chosenWordId = chooseWord(usageList, current_time, request.query.focus or 'reading')
+        chosenWordId = chooseWord(usageList, current_time, focus)
     else:
         chosenWordId = id.strip()
     chosenWord = next(filter(lambda v: v[0].strip() == chosenWordId, map(lambda w: w.split("|"), wordsList)))
+
+    wordUsage = getWordUsage(chosenWordId, usageList, focus)
 
     chosenSentences = [sentence for sentence in sentencesList if sentence.split("|")[0] == chosenWord[0]]
 
@@ -41,23 +44,33 @@ def wordGet(id="chooseBest"):
         sentenceObject['translation'] = splitted[2].strip()
         sentencesArray.append(sentenceObject.copy())
 
-    new_line_as_array = updateValuesForWordAndFocus(chosenWordId, current_time.isoformat(), request.query.focus)
 
     response = {}
+    response['id'] = chosenWord[0].strip()
     response['word'] = chosenWord[1].strip()
     response['reading'] = chosenWord[2].strip()
     response['meaning'] = chosenWord[3].strip()
     response['alternative'] = chosenWord[4].strip()
     response['explainer'] = chosenWord[5].strip()
-    response['useReading'] = new_line_as_array[2]
-    response['familiarity'] = new_line_as_array[3 if request.query.focus == "reading" else 4]
-    response['testAmount'] = new_line_as_array[5 if request.query.focus == "reading" else 6]
-    response['lastTestDate'] = datetime.datetime.fromisoformat(new_line_as_array[7 if request.query.focus == "reading" else 8]).strftime("%d/%m/%Y %Hh%M")
+    response['useReading'] = wordUsage["useReading"]
+    response['familiarity'] = wordUsage["familiarity"]
+    response['testAmount'] = wordUsage["testAmount"]
+    response['lastTestDate'] = wordUsage["lastTestDate"] #datetime.datetime.fromisoformat(new_line_as_array[7 if request.query.focus == "reading" else 8]).strftime("%d/%m/%Y %Hh%M")
     response['sentences'] = sentencesArray
     json_response = json.dumps(response)
 
-
     return json_response
+
+
+@route('/word/save', method = ['POST'])
+def saveWord():
+    new_word = request.json
+    print(new_word)
+    print(new_word['id'])
+    print(new_word['explainer'])
+    print(new_word['familiarity'])
+    current_time = datetime.datetime.now()
+    #updateValuesForWordAndFocus(new_word, current_time.isoformat(), request.query.focus)
 
 @route('/word/words/all', method = ['GET'])
 def getAllWords():
@@ -79,6 +92,11 @@ def getAllWords():
         usageList = usageFile.read()
     return usageList
 
+def getWordUsage(wordId, focus):
+    return {"useReading":"1",
+            "lastTestDate": "",
+            "testAmount": "",
+            "familiarity": ""}
 
 def chooseWord(usageList, current_time, focus="reading"):
     usageArray = map(lambda u: list(map(lambda x: x.strip(), u.split('|'))), usageList)
@@ -115,10 +133,8 @@ def calculate_score(word_data, current_time):
     
     return score
 
-def updateValuesForWordAndFocus(word_id, now, focus="none"):
+def updateValuesForWordAndFocus(word, now, focus):
     file_path = 'resource\\data\\words\\usage.txt'
-    r = 1 if focus=="reading" else 0
-    w = 1 if focus=="writing" else 0
     new_line_as_array = []
     #Create temp file
     fh, abs_path = mkstemp()
@@ -126,12 +142,19 @@ def updateValuesForWordAndFocus(word_id, now, focus="none"):
          with open(file_path) as old_file:
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
-                if splitted[0] == word_id:
-                    read_date = now if focus=="reading" else splitted[7]
-                    write_date = now if focus=="writing" else splitted[8]
-                    new_line_as_array = [word_id, splitted[1], splitted[2], str(int(splitted[3])+r), str(int(splitted[4])+w), str(int(splitted[5])+r), str(int(splitted[6])+w), read_date, write_date]
-                    new_line = ' | '.join(new_line_as_array)
-                    new_file.write(new_line + '\n')
+                if splitted[0] == word["id"]:
+                    new_line_as_array = [
+                        word["id"], 
+                        word["unlocked"],
+                        word["useReading"],
+                        word["familiarity"]  if focus=="reading" else splitted[3], 
+                        word["familiarity"]  if focus=="writing" else splitted[4], 
+                        word["testAmount"]   if focus=="reading" else splitted[5], 
+                        word["testAmount"]   if focus=="writing" else splitted[6], 
+                        now                  if focus=="reading" else splitted[7], 
+                        now                  if focus=="writing" else splitted[8]
+                    ]
+                    new_file.write(' | '.join(new_line_as_array) + '\n')
                 else:
                     new_file.write(line)
     #Copy the file permissions from the old file to the new file
@@ -149,7 +172,7 @@ id | familiarity | amount | last_seen
 3  | 21          | 55     | 2024-08-27T23:35:55.654608
 4  | 0           | 52752  | 2024-08-27T23:35:55.654608
 
-id | unlocked | hide_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read                  | last_write 
+id | unlocked | use_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read                  | last_write 
 1  | 1        | 0            | 10                  | 4                   | 28          | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
 2  | 1        | 1            | 20                  | 3                   | 42212       | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
 3  | 0        | 0            | 30                  | 2                   | 21          | 55           | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608

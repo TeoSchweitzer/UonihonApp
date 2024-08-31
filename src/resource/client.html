@@ -24,7 +24,13 @@
         let sentences = ""
         let usage = ""
         let noKanjiMode = false
-        let currentWord = {}
+        let currentWord = undefined
+
+        document.addEventListener('visibilitychange', (event) => {
+            if (currentWord?.id) {
+                saveCurrentWord()
+            }
+        });
 
         function initUonihon() {
             fetch(HOST + "/word/words/all", {
@@ -36,10 +42,18 @@
         }
 
         function saveCurrentWord() {
-            
+            return fetch(HOST + "/word/save", {
+                method: "POST", keepalive: true, 
+                headers: { "Content-type": "application/json; charset=UTF-8" },
+                body: JSON.stringify(currentWord)
+            });
         }
 
-        function getWord(wordId, focus) {
+        async function getWord(wordId, focus) {
+
+            if (currentWord) {
+                await saveCurrentWord()
+            }
 
             const finalUrl = HOST 
                 + "/word" 
@@ -67,7 +81,7 @@
                     }
                     obf = v => ((v=='jp' && focus=="reading") || (v=='tr' && focus=="writing")) ? 'obfuscated' : ''
 
-                    currentWord = {...json}
+                    currentWord = {...json, unlocked: "1"}
                     document.getElementById('word').innerText = json.word ?? "";
                     document.getElementById('reading').innerText = json.reading ?? "";
                     document.getElementById('meaning').innerText = json.meaning ?? "";
@@ -76,7 +90,7 @@
                     document.getElementById('familiarity-choice-value').innerText = json.familiarity ?? "";
                     document.getElementById('amount-seen-value').innerText = json.testAmount ?? "";
                     document.getElementById('date-last-seen-value').innerText = json.lastTestDate ?? "";
-                    switchNoKanjiMode(json.useReading=='1' ? true : false)
+                    switchNoKanjiMode(currentWord.useReading)
 
                     var sentences = document.getElementById('sentences-container');
                     sentences.replaceChildren();
@@ -180,10 +194,11 @@
             }
         }
         function switchNoKanjiMode(value) {
-            noKanjiMode = value!=null ? value : !noKanjiMode
-            document.getElementById("no-kanji-checkbox").checked = noKanjiMode
-            document.getElementById('word').innerText = noKanjiMode ? currentWord.reading : currentWord.word
-            document.getElementById("no-kanji-label").style.visibility = noKanjiMode ? 'visible' : 'collapse'
+            currentWord.useReading = value??(currentWord.useReading=="0" ? "1" : "0")
+            const isNoKanji = currentWord.useReading == "0" ? false : true
+            document.getElementById("no-kanji-checkbox").checked = isNoKanji
+            document.getElementById('word').innerText = isNoKanji ? currentWord.reading : currentWord.word
+            document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
         }
 
     </script>
@@ -269,6 +284,20 @@
                         <span id="date-last-seen">Date du dernier test : <span id="date-last-seen-value">02/45/2024 08h56</span></span>
                     </div>
 
+                </div>
+
+                <div class="line"> </div>
+
+                <div class="footer">
+                    <div class="card-container">
+                        <div id="no-kanji-choice" class="card-inner two long setting" onclick="switchNoKanjiMode()">
+                            <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
+                            <label for="no-kanji-checkbox">Verrouiller</label>
+                        </div>
+                        <div id="familiarity-choice" class="card-inner two long setting">
+                            Supprimer
+                        </div>
+                    </div>
                 </div>
             </div>
 
