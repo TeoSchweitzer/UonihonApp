@@ -23,6 +23,8 @@
         let words = ""
         let sentences = ""
         let usage = ""
+        let noKanjiMode = false
+        let currentWord = {}
 
         function initUonihon() {
             fetch(HOST + "/word/words/all", {
@@ -31,6 +33,10 @@
                 words = response;
             });
             getWord(null, 'reading')
+        }
+
+        function saveCurrentWord() {
+            
         }
 
         function getWord(wordId, focus) {
@@ -60,11 +66,17 @@
                         obfuscation('explainer');
                     }
                     obf = v => ((v=='jp' && focus=="reading") || (v=='tr' && focus=="writing")) ? 'obfuscated' : ''
-                    document.getElementById('word').innerText = json.useReading=='0' ? (json.word ?? "") : (json.reading ?? "");
+
+                    currentWord = {...json}
+                    document.getElementById('word').innerText = json.word ?? "";
                     document.getElementById('reading').innerText = json.reading ?? "";
                     document.getElementById('meaning').innerText = json.meaning ?? "";
                     document.getElementById('alternative').innerText = json.alternative ?? "";
                     document.getElementById('explainer').innerText = (json.explainer?.replace(/\\n/g, "\n")) ?? "";
+                    document.getElementById('familiarity-choice-value').innerText = json.familiarity ?? "";
+                    document.getElementById('amount-seen-value').innerText = json.testAmount ?? "";
+                    document.getElementById('date-last-seen-value').innerText = json.lastTestDate ?? "";
+                    switchNoKanjiMode(json.useReading=='1' ? true : false)
 
                     var sentences = document.getElementById('sentences-container');
                     sentences.replaceChildren();
@@ -167,6 +179,12 @@
                 element.classList.add("obfuscated");
             }
         }
+        function switchNoKanjiMode(value) {
+            noKanjiMode = value!=null ? value : !noKanjiMode
+            document.getElementById("no-kanji-checkbox").checked = noKanjiMode
+            document.getElementById('word').innerText = noKanjiMode ? currentWord.reading : currentWord.word
+            document.getElementById("no-kanji-label").style.visibility = noKanjiMode ? 'visible' : 'collapse'
+        }
 
     </script>
 
@@ -191,7 +209,7 @@
                     <div class="card-container">
 
                         <div class="card two" onclick="obfuscation('word')">
-                            <div class="label">Mot</div>
+                            <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
                             <div id='word' class="card-inner short">
                             </div>
                         </div>
@@ -230,8 +248,29 @@
                     <div id="sentences-container">
                     </div>
                 </div>
-            </div>
 
+                <div class="line"> </div>
+
+                <div class="footer">
+
+                    <div class="card-container">
+                        <div id="no-kanji-choice" class="card-inner two long setting" onclick="switchNoKanjiMode()">
+                            <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
+                            <label for="no-kanji-checkbox">Mode Sans-Kanji</label>
+                        </div>
+                        <div id="familiarity-choice" class="card-inner two long setting">
+                            Familiarité :&nbsp
+                            <span id="familiarity-choice-value">1542</span>
+                        </div>
+                    </div>
+
+                    <div class="sub-footer">
+                        <span id="amount-seen-info">Nombre de fois vus : <span id="amount-seen-value">1542</span></span>
+                        <span id="date-last-seen">Date du dernier test : <span id="date-last-seen-value">02/45/2024 08h56</span></span>
+                    </div>
+
+                </div>
+            </div>
 
             <div class="main-view-container kanjiTab" style="visibility: collapse;">
                 this is the kanji tab Start

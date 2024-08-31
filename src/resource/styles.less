@@ -61,6 +61,26 @@ body {
       height: 100%;
       padding: 5px 0;
 
+      .footer {
+      
+        .main-footer {
+          font-size: 35px;
+        }
+        .sub-footer {
+          font-size: 25px;
+          color: darken(@white,15%);
+          margin: 10px 0;
+          width: 100%;
+          margin: auto;
+          font-style: italic;
+          margin: 0 0 0 20px;
+
+          span {
+            margin: 0 10px 0 0;
+          }
+        }
+      }
+
       #sentences-container {
         width: 100%;
       }
@@ -118,7 +138,6 @@ body {
       border-right: 3px solid ~'@{@{tabs-border-color}}';
       height: 120px;
       padding-top: 22px;
-      width: 33.33%;
 
       &.three-tabs { width: 33.33%; }
       &.two-tabs { width: 50%; }
@@ -168,43 +187,53 @@ body {
     font-style: italic;
     color: darken(@white, 25%);
   }
-
-  .card-inner {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center; 
-    align-items: center;
-    background-color: @primary;
-    border-radius: 10px;
-    width: 100%;
-    padding: 42px 20px 30px 20px;
-    height: calc(100% - 66px);
-    
-    &.obfuscated {
-      filter: brightness(0%) blur(4px);
-    }
-    &.short {
-      font-size: 65px;
-      min-height: 135px;
-    }
-    &.long {
-      font-size: 35px !important;
-      min-height: 70px;
-      text-align: left; 
-    }
-  }
-
-  &.two {
-    width: 49%;
-  }
-
-  &.one {
-    width: 99%;
-  }
   
 }
 
+&.two {
+  width: 48%;
+}
+
+.checkbox-style {
+  transform: scale(2.5);
+  margin-right: 25px;
+}
+
+.card-inner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center; 
+  align-items: center;
+  background-color: @primary;
+  border-radius: 10px;
+  width: 100%;
+  padding: 42px 20px 30px 20px;
+  height: calc(100% - 66px);
+  
+
+  &.setting {
+    flex-direction: row;
+    justify-self: center;
+    background-color: lighten(@primary,12%);
+    margin: 15px;
+    padding: 20px 28px;
+    height: unset;
+    width: 0 auto;
+  }
+  &.obfuscated {
+    filter: brightness(0%) blur(4px);
+  }
+  &.short {
+    font-size: 65px;
+    min-height: 135px;
+  }
+  &.long {
+    font-size: 35px !important;
+    min-height: 70px;
+    text-align: left; 
+  }
+}
 .line {
   margin: 12px 0;
   width: 100%;

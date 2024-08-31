@@ -41,7 +41,7 @@ def wordGet(id="chooseBest"):
         sentenceObject['translation'] = splitted[2].strip()
         sentencesArray.append(sentenceObject.copy())
 
-    original_line_as_array = updateValuesForWordAndFocus(chosenWordId, current_time.isoformat(), request.query.focus)
+    new_line_as_array = updateValuesForWordAndFocus(chosenWordId, current_time.isoformat(), request.query.focus)
 
     response = {}
     response['word'] = chosenWord[1].strip()
@@ -49,13 +49,15 @@ def wordGet(id="chooseBest"):
     response['meaning'] = chosenWord[3].strip()
     response['alternative'] = chosenWord[4].strip()
     response['explainer'] = chosenWord[5].strip()
-    response['useReading'] = original_line_as_array[2]
+    response['useReading'] = new_line_as_array[2]
+    response['familiarity'] = new_line_as_array[3 if request.query.focus == "reading" else 4]
+    response['testAmount'] = new_line_as_array[5 if request.query.focus == "reading" else 6]
+    response['lastTestDate'] = datetime.datetime.fromisoformat(new_line_as_array[7 if request.query.focus == "reading" else 8]).strftime("%d/%m/%Y %Hh%M")
     response['sentences'] = sentencesArray
     json_response = json.dumps(response)
 
 
     return json_response
-
 
 @route('/word/words/all', method = ['GET'])
 def getAllWords():
@@ -117,7 +119,7 @@ def updateValuesForWordAndFocus(word_id, now, focus="none"):
     file_path = 'resource\\data\\words\\usage.txt'
     r = 1 if focus=="reading" else 0
     w = 1 if focus=="writing" else 0
-    original_line_as_array = []
+    new_line_as_array = []
     #Create temp file
     fh, abs_path = mkstemp()
     with fdopen(fh,'w') as new_file:
@@ -125,11 +127,11 @@ def updateValuesForWordAndFocus(word_id, now, focus="none"):
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
                 if splitted[0] == word_id:
-                    original_line_as_array = splitted
                     read_date = now if focus=="reading" else splitted[7]
                     write_date = now if focus=="writing" else splitted[8]
-                    new_line = f'{word_id} | {splitted[1]} | {splitted[2]} | {str(int(splitted[3])+r)} | {str(int(splitted[4])+w)} | {str(int(splitted[5])+r)} | {str(int(splitted[6])+w)} | {read_date} | {write_date} \n'
-                    new_file.write(new_line)
+                    new_line_as_array = [word_id, splitted[1], splitted[2], str(int(splitted[3])+r), str(int(splitted[4])+w), str(int(splitted[5])+r), str(int(splitted[6])+w), read_date, write_date]
+                    new_line = ' | '.join(new_line_as_array)
+                    new_file.write(new_line + '\n')
                 else:
                     new_file.write(line)
     #Copy the file permissions from the old file to the new file
@@ -138,7 +140,7 @@ def updateValuesForWordAndFocus(word_id, now, focus="none"):
     remove(file_path)
     #Move new file
     move(abs_path, file_path)
-    return original_line_as_array
+    return new_line_as_array
 
 '''
 id | familiarity | amount | last_seen 
