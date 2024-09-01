@@ -164,11 +164,11 @@
             });
         }
 
-        async function switchWordListVisibility() {
+        async function switchWordListVisibility(goToWordList) {
             var listNode = document.querySelector('.words-list-activity');
             var testNode = document.querySelector('.word-tester-activity');
             var listTableNode = document.querySelector('#word-list-table');
-            if (listNode.style.display == 'none') {
+            if (goToWordList || listNode.style.display == 'none') {
                 listNode.style.display = 'block'
                 testNode.style.display = 'none';
                 listTableNode.replaceChildren();
@@ -189,6 +189,11 @@
                 listNode.style.display = 'none';
                 testNode.style.display = 'grid';
             }
+        }
+
+        function startSearchingInWordList() {
+            switchWordListVisibility(true)
+
         }
 
         function resetObfuscation() {
@@ -336,14 +341,17 @@
             </div>
         </div>
 
-        <div  class="uonihon-main-space bottom-main-space">
+        <div class="uonihon-main-space bottom-main-space">
 
+            <div class="tab wordInput no-padding">
+                <input type="search" class="word-search-input"></input>
+            </div>
             <div class="tab list inline" onclick="switchWordListVisibility()">
                 <img class="icon" src="asset/list.png" alt="Vocabulary icon">
                 <div class="tab-text">Liste</div>
             </div>
 
-            <div class="tab search inline" onclick="setVisibleTab('consumeTab')">
+            <div class="tab search inline" onclick="startSearchingInWordList()">
                 <img class="icon" src="asset/search.png" alt="Kanji icon">
                 <div class="tab-text">Chercher</div>
             </div>

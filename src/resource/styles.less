@@ -121,10 +121,12 @@ body { margin: 0; box-sizing: border-box;}
       z-index: 2;
       display: grid;  
       grid-template-areas:
+        'wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput'
         'list list list list                           search search     search search     add add add add'
         'reading reading reading reading               reading reading   writing writing   writing writing writing writing'
         'vocabulary vocabulary vocabulary vocabulary   kanji kanji       kanji kanji       kana kana kana kana';
 
+      .wordInput { grid-area: wordInput;}
       .list { grid-area: list;}
       .search { grid-area: search;}
       .add { grid-area: add;}
@@ -228,6 +230,18 @@ body { margin: 0; box-sizing: border-box;}
   transform: scale(2.3);
   margin: 0 12px 0 0;
   vertical-align: middle;
+}
+
+.word-search-input {
+    width: 100%;
+    height: 70px;
+    font-size: 45px;
+    font-family: "EB Garamond";
+    font-weight: 600;
+}
+
+.no-padding {
+  padding: 0 !important;
 }
 
 
