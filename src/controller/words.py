@@ -1,3 +1,4 @@
+import random
 from bottle import *
 import json
 import math
@@ -15,7 +16,7 @@ def wordGet(id="chooseBest"):
     wordsList = []
     sentencesList = []
     usageList = []
-    focus = request.query.focus or 'reading'
+    focus = request.query.focus or 'no-focus'
 
     with open('resource\\data\\words\\words.txt', 'r', encoding="utf-8") as wordsFile:
         wordsList = wordsFile.read().splitlines()
@@ -44,7 +45,6 @@ def wordGet(id="chooseBest"):
         sentenceObject['translation'] = splitted[2].strip()
         sentencesArray.append(sentenceObject.copy())
 
-
     response = {}
     response['id'] = chosenWord[0].strip()
     response['word'] = chosenWord[1].strip()
@@ -52,10 +52,11 @@ def wordGet(id="chooseBest"):
     response['meaning'] = chosenWord[3].strip()
     response['alternative'] = chosenWord[4].strip()
     response['explainer'] = chosenWord[5].strip()
+    response['unlocked'] = wordUsage["unlocked"]
     response['useReading'] = wordUsage["useReading"]
     response['familiarity'] = wordUsage["familiarity"]
     response['testAmount'] = wordUsage["testAmount"]
-    response['lastTestDate'] = wordUsage["lastTestDate"] #datetime.datetime.fromisoformat(new_line_as_array[7 if request.query.focus == "reading" else 8]).strftime("%d/%m/%Y %Hh%M")
+    response['lastTestDate'] = datetime.datetime.fromisoformat(wordUsage["lastTestDate"]).strftime("%d/%m/%Y %Hh%M")
     response['sentences'] = sentencesArray
     json_response = json.dumps(response)
 
@@ -64,13 +65,7 @@ def wordGet(id="chooseBest"):
 
 @route('/word/save', method = ['POST'])
 def saveWord():
-    new_word = request.json
-    print(new_word)
-    print(new_word['id'])
-    print(new_word['explainer'])
-    print(new_word['familiarity'])
-    current_time = datetime.datetime.now()
-    #updateValuesForWordAndFocus(new_word, current_time.isoformat(), request.query.focus)
+    updateValuesForWordAndFocus(request.json, datetime.datetime.now().isoformat(), request.query.focus or "no-focus")
 
 @route('/word/words/all', method = ['GET'])
 def getAllWords():
@@ -93,14 +88,41 @@ def getAllWords():
     return usageList
 
 def getWordUsage(wordId,  usageList, focus):
-    return {"useReading":"1",
-            "lastTestDate": "",
-            "testAmount": "",
-            "familiarity": ""}
+    word = next(filter(lambda v : v.split('|')[0].strip() == wordId, usageList)).split('|')
+    #id | unlocked | use_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read | last_write
+    match focus:
+        case "reading":
+            familiarity = word[3].strip()
+            testAmount = word[5].strip()
+            lastTestDate = word[7].strip()
+        case "writing":
+            familiarity = word[4].strip()
+            testAmount = word[6].strip()
+            lastTestDate = word[8].strip()
+        case _:
+            familiarity = str(int(word[3].strip()) + int(word[4].strip()))
+            testAmount = str(int(word[5].strip()) + int(word[6].strip()))
+            lastTestDate = datetime.datetime.isoformat(max(datetime.datetime.fromisoformat(word[7].strip()), datetime.datetime.fromisoformat(word[8].strip())))
+    return {
+        "unlocked" : word[1].strip(),
+        "useReading":word[2].strip(), 
+        "familiarity": familiarity,
+        "testAmount": testAmount,
+        "lastTestDate": lastTestDate
+    }
 
-def chooseWord(usageList, current_time, focus="reading"):
-    usageArray = map(lambda u: list(map(lambda x: x.strip(), u.split('|'))), usageList)
-    removedLocked = filter(lambda v: v[1]=="1", usageArray)
+def chooseWord(usageList, current_time, focus="no-focus"):
+    usageArray = list(map(lambda u: list(map(lambda x: x.strip(), u.split('|'))), usageList))
+
+    if (focus=="no-focus"):
+        onlyLocked = list(filter(lambda v: v[1]!="1", usageArray))
+        return random.choice(onlyLocked if len(onlyLocked) > 0 else usageArray)[0]
+    
+    removedLocked = list(filter(lambda v: v[1]=="1", usageArray))
+
+    if len(removedLocked) == 0:
+        return random.choice(list(usageArray))[0]
+    
     r = (focus == 'reading')
     simplified_list = map(lambda v : [v[0], v[3 if r else 4], v[5 if r else 6], v[7 if r else 8]] , removedLocked)
     
@@ -133,7 +155,7 @@ def calculate_score(word_data, current_time):
     
     return score
 
-def updateValuesForWordAndFocus(word, now, focus):
+def updateValuesForWordAndFocus(word, now, focus="no-focus"):
     file_path = 'resource\\data\\words\\usage.txt'
     new_line_as_array = []
     #Create temp file
@@ -142,7 +164,7 @@ def updateValuesForWordAndFocus(word, now, focus):
          with open(file_path) as old_file:
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
-                if splitted[0] == word["id"]:
+                if splitted[0].strip() == word["id"]:
                     new_line_as_array = [
                         word["id"], 
                         word["unlocked"],

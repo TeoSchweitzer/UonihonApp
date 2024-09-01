@@ -9,12 +9,18 @@
     <link rel="icon" sizes="180x180" href="asset/icon/favicon-180x180.png">
     <link rel="icon" sizes="192x192" href="asset/icon/favicon-192x192.png">
     <link rel="icon" sizes="512x512" href="asset/icon/favicon-192x192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link rel="stylesheet/less" type="text/css" href="styles.less" />
     <title>Uonihon</title>
     <script src="https://cdn.jsdelivr.net/npm/less"></script>
 </head>
 
-<body onload="initUonihon()">
+<body onload="getWord()">
 
     <script>
 
@@ -25,6 +31,15 @@
         let usage = ""
         let noKanjiMode = false
         let currentWord = undefined
+        let currentFocus = undefined
+
+        function getAllWords() {
+            return fetch(HOST + "/word/words/all", {
+                method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
+            }).then((response) => response.text()).then((response) => {
+                words = response;
+            });
+        }
 
         document.addEventListener('visibilitychange', (event) => {
             if (currentWord?.id) {
@@ -32,17 +47,12 @@
             }
         });
 
-        function initUonihon() {
-            fetch(HOST + "/word/words/all", {
-                method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
-            }).then((response) => response.text()).then((response) => {
-                words = response;
-            });
-            getWord(null, 'reading')
-        }
-
         function saveCurrentWord() {
-            return fetch(HOST + "/word/save", {
+            if (currentFocus != undefined) {
+                currentWord.familiarity = (parseInt(currentWord.familiarity)+1) + ""
+                currentWord.testAmount = (parseInt(currentWord.testAmount)+1) + ""
+            }
+            return fetch(HOST + "/word/save" + (currentFocus ? ("?" + new URLSearchParams({focus: currentFocus}).toString()) : ""), {
                 method: "POST", keepalive: true, 
                 headers: { "Content-type": "application/json; charset=UTF-8" },
                 body: JSON.stringify(currentWord)
@@ -55,12 +65,14 @@
                 await saveCurrentWord()
             }
 
+            currentFocus = focus
+
             const finalUrl = HOST 
                 + "/word" 
                 + (wordId ? `/${wordId}` : "") 
-                + (focus ? ("?" + new URLSearchParams({focus: focus}).toString()) : "")
+                + (currentFocus ? ("?" + new URLSearchParams({focus: focus}).toString()) : "")
 
-            fetch(finalUrl, {
+            return fetch(finalUrl, {
                 method: "GET",
                 headers: {
                     "Content-type": "application/json; charset=UTF-8",
@@ -69,19 +81,20 @@
                 .then((response) => response.json())
                 .then((json) => {
                     resetObfuscation();
-                    if (focus=="reading") {
+                    if (currentFocus=="writing") {
                         obfuscation('word');
                         obfuscation('reading');
                         obfuscation('explainer');
-                    } else if (focus=="writing") {
+                    } else if (currentFocus=="reading") {
                         obfuscation('meaning');
                         obfuscation('reading');
                         obfuscation('alternative');
                         obfuscation('explainer');
                     }
-                    obf = v => ((v=='jp' && focus=="reading") || (v=='tr' && focus=="writing")) ? 'obfuscated' : ''
+                    obf = v => ((v=='jp' && currentFocus=="writing") || (v=='tr' && currentFocus=="reading")) ? 'obfuscated' : ''
 
-                    currentWord = {...json, unlocked: "1"}
+                    currentWord = {...json}
+
                     document.getElementById('word').innerText = json.word ?? "";
                     document.getElementById('reading').innerText = json.reading ?? "";
                     document.getElementById('meaning').innerText = json.meaning ?? "";
@@ -91,17 +104,18 @@
                     document.getElementById('amount-seen-value').innerText = json.testAmount ?? "";
                     document.getElementById('date-last-seen-value').innerText = json.lastTestDate ?? "";
                     switchNoKanjiMode(currentWord.useReading)
+                    switchUnlockedMode(currentWord.unlocked)
 
                     var sentences = document.getElementById('sentences-container');
                     sentences.replaceChildren();
                     (json.sentences ?? [])?.forEach(function (sentence, i) {
                         let htmlSentence = `
               <div class="line"> </div>
-              <div class="obfuscation-container one" onclick="obfuscation('sentence${i + 1}')">
+              <div class="obfuscation-container" style="margin: 12px 0" onclick="obfuscation('sentence${i + 1}')">
                 <div class="label">Phrase ${i + 1}</div>
                 <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
               </div>
-              <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
+              <div class="obfuscation-container" onclick="obfuscation('translation${i + 1}')">
                 <div class="label">Traduction ${i + 1}</div>
                 <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
               </div>
@@ -150,19 +164,20 @@
             });
         }
 
-        function switchWordListVisibility() {
-            var listNode = document.querySelector('.word-list-container');
-            var testNode = document.querySelector('.word-test-container');
+        async function switchWordListVisibility() {
+            var listNode = document.querySelector('.words-list-activity');
+            var testNode = document.querySelector('.word-tester-activity');
             var listTableNode = document.querySelector('#word-list-table');
-            if (listNode.style.visibility == 'collapse') {
-                listNode.style.visibility = 'visible'
-                testNode.style.visibility = 'collapse';
+            if (listNode.style.display == 'none') {
+                listNode.style.display = 'block'
+                testNode.style.display = 'none';
                 listTableNode.replaceChildren();
+                await getAllWords()
                 words.split('\n').forEach(function (wordLine, i) {
                     if (wordLine == "") return
                     let splittedLine = wordLine.split('|')
                     let htmlSentence = `
-                    <tr id="wordListIdx${i + 1}" onclick="(() => {getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
+                    <tr id="wordListIdx${i + 1}" onclick="(async () => {await getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
                         <td>${splittedLine[1]}</td>
                         <td>${splittedLine[2]}</td>
                         <td>${splittedLine[3]}</td>
@@ -171,8 +186,8 @@
                     listTableNode.insertAdjacentHTML('beforeend', htmlSentence)
                 });
             } else {
-                listNode.style.visibility = 'collapse';
-                testNode.style.visibility = 'visible';
+                listNode.style.display = 'none';
+                testNode.style.display = 'grid';
             }
         }
 
@@ -200,13 +215,21 @@
             document.getElementById('word').innerText = isNoKanji ? currentWord.reading : currentWord.word
             document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
         }
+        function switchUnlockedMode(value) {
+            currentWord.unlocked = value??(currentWord.unlocked=="0" ? "1" : "0")
+            const unlocked = currentWord.unlocked == "0" ? false : true            
+            document.getElementById("unlocked-checkbox").checked = unlocked
+        }
 
         function showDeletionConfirmation() {
-            let element = document.getElementById("deletion-confirmation")
-            if (element.style.visibility == "visible") {
-                element.style.visibility = "collapse"
+            let element1 = document.getElementById("cancel-deletion-button")
+            let element2 = document.getElementById("confirm-deletion-button")
+            if (element1.style.visibility == "visible") {
+                element1.style.visibility = "collapse"
+                element2.style.visibility = "collapse"
             } else {
-                element.style.visibility = "visible"
+                element1.style.visibility = "visible"
+                element2.style.visibility = "visible"
             }
         }
 
@@ -215,14 +238,17 @@
     <div class="uonihon-html-divided-in-two-main-spaces">
         <div class="uonihon-main-space top-main-space">
             <div class="uonihon-app vocabulary-app">
-                <div class="word-tester-activity">
+                <div class="word-tester-activity" >
+
+                    <div class="line1 line"> </div>
+                    <div class="line3 line thicker"> </div>
+                    <div class="line4 line thicker"> </div>
 
                     <div class="word obfuscation-container" onclick="obfuscation('word')">
                         <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
                         <div id='word' class="card big-font">
                         </div>
                     </div>
-
                     <div class="reading obfuscation-container" onclick="obfuscation('reading')">
                         <div class="label">Prononciation</div>
                         <div id="reading" class="card big-font"></div>
@@ -241,57 +267,33 @@
 
                     <div class="explainer obfuscation-container" onclick="obfuscation('explainer')">
                         <div class="label">Explications</div>
-                        <div id="explainer" class="card"></div>
+                        <div id="explainer" class="card align-start"></div>
                     </div>
 
-                    <div class="sentences sentences-container">
-                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
-                            <div class="label">Phrase ${i + 1}</div>
-                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
-                        </div>
-                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
-                            <div class="label">Traduction ${i + 1}</div>
-                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
-                        </div>
-                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
-                            <div class="label">Phrase ${i + 1}</div>
-                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
-                        </div>
-                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
-                            <div class="label">Traduction ${i + 1}</div>
-                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
-                        </div>
-                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
-                            <div class="label">Phrase ${i + 1}</div>
-                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
-                        </div>
-                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
-                            <div class="label">Traduction ${i + 1}</div>
-                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
-                        </div>
+                    <div id="sentences-container" class="sentences">
                     </div>
 
-                    <div id="no-kanji-choice" class="noKanji card two long setting" onclick="switchNoKanjiMode()">
+                    <div id="no-kanji-choice" class="noKanji card even-padding" onclick="switchNoKanjiMode()">
                         <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                        <label for="no-kanji-checkbox">Mode Sans-Kanji</label>
+                        <span>Mode Sans-Kanji</span>
                     </div>
 
-                    <div id="familiarity familiarity-choice" class="familiarity card two long setting">
+                    <div id="familiarity familiarity-choice" class="familiarity card even-padding">
                         Familiarité :&nbsp
-                        <span id="familiarity-choice-value">1542</span>
+                        <span id="familiarity-choice-value"></span>
                     </div>
 
                     <div class="moreInfo sub-footer">
-                        <span id="amount-seen-info">Nombre de fois vus : <span id="amount-seen-value">1542</span></span>
-                        <span id="date-last-seen">Date du dernier test : <span id="date-last-seen-value">02/45/2024 08h56</span></span>
+                        <span id="amount-seen-info">Nombre de fois vus : <span id="amount-seen-value"></span></span>
+                        <span id="date-last-seen">&nbsp&nbsp&nbspDate du dernier test : <span id="date-last-seen-value"></span></span>
                     </div>
 
-                    <div id=" unlocked-choice" class="unlocked card two long setting" onclick="switchNoKanjiMode()">
-                        <input type="checkbox" autocomplete="off" id="unlocked-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                        <label for="unlocked-checkbox">Verrouiller</label>
+                    <div id="unlocked-choice" class="unlocked card even-padding" onclick="switchUnlockedMode()">
+                        <input type="checkbox" autocomplete="off" id="unlocked-checkbox" class="checkbox-style">
+                        <span>Évaluable</span>
                     </div>
 
-                    <div id=" delete-choice" class="delete card two long setting" onclick="showDeletionConfirmation()">
+                    <div id=" delete-choice" class="delete card even-padding" onclick="showDeletionConfirmation()">
                         Supprimer
                     </div>
 
@@ -299,16 +301,16 @@
 
                     <div class="nothing"></div>
 
-                    <div class="confirm card" onclick="deleteCurrentWord()">
+                    <div id="confirm-deletion-button" class="confirm card even-padding" onclick="deleteCurrentWord()" style="visibility: collapse;">
                         Confirmer
                     </div>
 
-                    <div class="cancel card" onclick="showDeletionConfirmation()">
+                    <div id="cancel-deletion-button" class="cancel card even-padding" onclick="showDeletionConfirmation()" style="visibility: collapse;">
                         Annuler
                     </div>
                 </div>
 
-                <div class="words-list-activity" style="visibility: collapse;">
+                <div class="words-list-activity" style="display: none;">
                     <table class="elegant-table"><thead>
                         <tr>
                             <th>Mot</th>
@@ -377,9 +379,6 @@
             </div>
                 
         </div>
-
-    </div>
-
 
     </div>
 
