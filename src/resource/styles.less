@@ -1,4 +1,4 @@
-
+body { margin: 0; box-sizing: border-box;}
 
 @black: #000000;
 @black-filter: invert(0%) sepia(54%) saturate(5212%) hue-rotate(87deg) brightness(99%) contrast(105%);
@@ -38,142 +38,125 @@
 }
 .generate-backgrounds(@app-colors);
 
-body {
-  margin: 0;
-  padding: 0;
+.uonihon-html-divided-in-two-main-spaces {
   background-color: lighten(@current-tab-color, 10%);
+  color: @main-text-color;
   font-family: Garamond, sans-serif;
   font-size: 35px;
   font-weight: 600;
-  color: @main-text-color;
-}
 
-.app-container {
+  .uonihon-main-space {
 
-  .main-view-containers {
-    background-color: lighten(@current-tab-color, 10%);
-    height: 100%;
-    margin-bottom: 500px;
-    
-    .main-view-container {
-      display: flex;
-      flex-flow: column;
-      height: 100%;
-      padding: 5px 0;
+    &.top-main-space {
 
-      .footer {
-      
-        .main-footer {
-          font-size: 35px;
+      .uonihon-app {
+
+        &.vocabulary-app {
+
+          .word-tester-activity {
+            display: grid;
+            gap: 10px;
+            padding: 10px;
+            grid-template-areas:
+              'word      word      reading     reading'
+              'meaning   meaning   alternative alternative'
+              'explainer explainer explainer   explainer'
+              'sentences sentences sentences   sentences'
+              'noKanji   noKanji   familiarity familiarity'
+              'moreInfo  moreInfo  moreInfo    moreInfo'
+              'unlocked  unlocked  delete      delete'
+              'nothing   nothing   confirm     cancel';
+
+            .word { grid-area: word;} 
+            .reading { grid-area: reading;}
+            .meaning { grid-area: meaning;}
+            .alternative { grid-area: alternative;}
+            .explainer { grid-area: explainer;}
+            .sentences { grid-area: sentences;}
+            .noKanji { grid-area: noKanji;}
+            .familiarity { grid-area: familiarity;}
+            .moreInfo { grid-area: moreInfo;}
+            .unlocked { grid-area: unlocked;}
+            .delete { grid-area: delete;}
+            .nothing { grid-area: nothing;}
+            .confirm { grid-area: confirm;}
+            .cancel { grid-area: cancel;}
+          }
+
+          .words-list-activity {
+          }
+
         }
-        .sub-footer {
-          font-size: 25px;
-          color: darken(@white,15%);
-          margin: 10px 0;
-          margin: auto;
-          font-style: italic;
-          margin: 0 0 0 20px;
 
-          span {
-            margin: 0 10px 0 0;
+        &.kanji-app {
+          
+        }
+        
+        &.kana-app {
+          
+        }
+      }
+
+    }
+      
+    &.bottom-main-space {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 5.5px;
+      z-index: 2;
+      display: grid;  
+      grid-template-areas:
+        'list list list list                           search search     search search     add add add add'
+        'reading reading reading reading               reading reading   writing writing   writing writing writing writing'
+        'vocabulary vocabulary vocabulary vocabulary   kanji kanji       kanji kanji       kana kana kana kana';
+
+      .list { grid-area: list;}
+      .search { grid-area: search;}
+      .add { grid-area: add;}
+      .reading { grid-area: reading;}
+      .writing { grid-area: writing;}
+      .vocabulary { grid-area: vocabulary;}
+      .kanji { grid-area: kanji;}
+      .kana { grid-area: kana;}
+
+      .tab {
+        text-align: center;
+        border: 2px outset @white;
+        padding: 18px 0;
+        width: 100%; 
+        
+        &.inline {
+          background-color: @current-tab-color;
+          display: flex;
+          padding: 30px 0;
+          justify-content: center;
+
+          div {
+            align-content: center;
           }
         }
       }
 
-      #sentences-container {
-        width: 100%;
-      }
-
-      .word-test-container {
-        padding: 0 15px;
-      }
-
-      .title {
-        font-size: 35px;
-        font-weight: 750;
-      }
-
-      .content {
-        font-size: 45px;
-        font-weight: 500;
-      }
-
-      .main-content {
-        font-size: 85px;
-      }
-
-      .wideguy {
-        margin: 20px;
-        height: 200px;
-      }
-
     }
 
   }
 
-  .tabs-container {
-    display: flex;
-    background-color: ~'@{@{tabs-background-color}}';
-    border-top: 3px solid ~'@{@{tabs-border-color}}';
-    position: fixed;
-    width: 100%;
-    z-index: 2;
-    
-    &.main-tabs-container {
-      bottom: 0;
-    }
-    &.sub-tabs-container {
-      bottom: 145px;
-    }
-    &.sub-sub-tabs-container {
-      bottom: 290px;
-    }
-
-    .tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background-color: @current-tab-color;
-      border-right: 3px solid ~'@{@{tabs-border-color}}';
-      height: 120px;
-      padding-top: 22px;
-
-      &.three-tabs { width: 33.33%; }
-      &.two-tabs { width: 50%; }
-      &.one-tabs { width: 100%;  }
-
-      &.vocabularyTab {background-color: @primary;}
-      &.kanjiTab {background-color: @secondary;}
-      &.kanaTab {background-color: @tertiary;}
-
-      &:last-child { border-right: none; }
-  
-      .tab-icon {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 8px;
-        filter: ~'@{@{tabs-main-color}-filter}';
-      }
-      
-      .tab-text {
-        font-size: 28px;
-        color: ~'@{@{tabs-main-color}}';
-      }
-    }
-  }
-  
 }
 
-.card-container {
-  display: flex; 
-  width: 100%;
-  justify-content: space-between;
+.big-font {
+  font-size: 55px;
 }
 
 .card {
+  text-align: center;
+  padding: 50px 15px 25px 20px;
+  background-color: @primary;
+  min-height: 60px;
   border-radius: 10px;
-  display: flex;  
-  margin: 10px 0 10px 0;
+}
+
+.obfuscation-container {
   position: relative;
 
   .label {
@@ -186,86 +169,16 @@ body {
     font-style: italic;
     color: darken(@white, 25%);
   }
-  
-}
 
-&.two {
-  width: 48.8%;
-}
-
-.checkbox-style {
-  transform: scale(2.5);
-  margin-right: 25px;
-}
-
-.card-inner {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center; 
-  align-items: center;
-  background-color: @primary;
-  border-radius: 10px;
-  width: 100%;
-  padding: 42px 20px 30px 20px;
-  height: calc(100% - 66px);
-  
-
-  &.setting {
-    flex-direction: row;
-    justify-self: center;
-    background-color: lighten(@primary,12%);
-    margin: 15px;
-    padding: 20px 28px;
-    height: unset;
-    width: 0 auto;
-  }
-  &.obfuscated {
+  .obfuscated {
     filter: brightness(0%) blur(4px);
   }
-  &.short {
-    font-size: 65px;
-    min-height: 135px;
-  }
-  &.long {
-    font-size: 35px !important;
-    min-height: 70px;
-    text-align: left; 
-  }
-}
-.line {
-  margin: 12px 0;
-  width: 100%;
-  height: 3px;
-  background-color: @white;
+  
 }
 
-
-
-.elegant-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-  font-size: 24px;
-  text-wrap: nowrap;
-  border: 1px solid @white;
-}
-
-.elegant-table th {
-  background-color: @black;
-  color: darken(@white,15%);
-  font-style: italic;
-  font-weight: 900;
-  padding: 12px;
-  text-align: left;
-  border-bottom: 2px solid @white;
-}
-
-.elegant-table td {
-  padding: 10px;
-  border-bottom: 1px solid @white;
-}
-
-.elegant-table tr:nth-child(even) {
-  background-color: @primary;
+.icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 14px;
+  filter: ~'@{@{tabs-main-color}-filter}';
 }

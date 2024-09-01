@@ -92,7 +92,7 @@ def getAllWords():
         usageList = usageFile.read()
     return usageList
 
-def getWordUsage(wordId, focus):
+def getWordUsage(wordId,  usageList, focus):
     return {"useReading":"1",
             "lastTestDate": "",
             "testAmount": "",

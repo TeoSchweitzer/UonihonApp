@@ -97,13 +97,13 @@
                     (json.sentences ?? [])?.forEach(function (sentence, i) {
                         let htmlSentence = `
               <div class="line"> </div>
-              <div class="card one" onclick="obfuscation('sentence${i + 1}')">
+              <div class="obfuscation-container one" onclick="obfuscation('sentence${i + 1}')">
                 <div class="label">Phrase ${i + 1}</div>
-                <div id="sentence${i + 1}" class="card-inner ${obf('jp')} long">${sentence.japanese}</div>
+                <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
               </div>
-              <div class="card one" onclick="obfuscation('translation${i + 1}')">
+              <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
                 <div class="label">Traduction ${i + 1}</div>
-                <div id="translation${i + 1}" class="card-inner ${obf('tr')} long">${sentence.translation}</div>
+                <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
               </div>
             `
                         sentences.insertAdjacentHTML('beforeend', htmlSentence)
@@ -177,7 +177,7 @@
         }
 
         function resetObfuscation() {
-            let elements = document.getElementsByClassName("card-inner")
+            let elements = document.getElementsByClassName("card")
             Array.from(elements).forEach(e => {
                 if (e.classList.contains("obfuscated")) {
                     e.classList.remove("obfuscated");
@@ -201,165 +201,185 @@
             document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
         }
 
+        function showDeletionConfirmation() {
+            let element = document.getElementById("deletion-confirmation")
+            if (element.style.visibility == "visible") {
+                element.style.visibility = "collapse"
+            } else {
+                element.style.visibility = "visible"
+            }
+        }
+
     </script>
 
-    <div class="app-container">
-        <div class="main-view-containers">
-            <div class="main-view-container vocabularyTab">
+    <div class="uonihon-html-divided-in-two-main-spaces">
+        <div class="uonihon-main-space top-main-space">
+            <div class="uonihon-app vocabulary-app">
+                <div class="word-tester-activity">
 
-                <div class="word-list-container" style="visibility: collapse;">
-                    <table class="elegant-table"><thead>
-                        <tr>
-                          <th>Mot</th>
-                          <th>Prononciation</th>
-                          <th>Sens</th>
-                          <th>Autres Sens</th>
-                        </tr></thead>
-                      <tbody id="word-list-table">
-                      </tbody>
-                      </table>
-                </div>
-
-                <div class="word-test-container">
-                    <div class="card-container">
-
-                        <div class="card two" onclick="obfuscation('word')">
-                            <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
-                            <div id='word' class="card-inner short">
-                            </div>
+                    <div class="word obfuscation-container" onclick="obfuscation('word')">
+                        <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
+                        <div id='word' class="card big-font">
                         </div>
-
-                        <div class="card two" onclick="obfuscation('reading')">
-                            <div class="label">Prononciation</div>
-                            <div id="reading" class="card-inner short"></div>
-                        </div>
-
                     </div>
 
-                    <div class="line"> </div>
-
-                    <div class="card-container">
-
-                        <div class="card two" onclick="obfuscation('meaning')">
-                            <div class="label">Sens Principal</div>
-                            <div id="meaning" class="card-inner long"></div>
-                        </div>
-
-                        <div class="card two" onclick="obfuscation('alternative')">
-                            <div class="label">Autres Sens</div>
-                            <div id="alternative" class="card-inner long">
-                            </div>
-                        </div>
-
+                    <div class="reading obfuscation-container" onclick="obfuscation('reading')">
+                        <div class="label">Prononciation</div>
+                        <div id="reading" class="card big-font"></div>
                     </div>
 
-                    <div class="line"> </div>
+                    <div class="meaning obfuscation-container" onclick="obfuscation('meaning')">
+                        <div class="label">Sens Principal</div>
+                        <div id="meaning" class="card"></div>
+                    </div>
 
-                    <div class="card one" onclick="obfuscation('explainer')">
+                    <div class="alternative obfuscation-container" onclick="obfuscation('alternative')">
+                        <div class="label">Autres Sens</div>
+                        <div id="alternative" class="card">
+                        </div>
+                    </div>
+
+                    <div class="explainer obfuscation-container" onclick="obfuscation('explainer')">
                         <div class="label">Explications</div>
-                        <div id="explainer" class="card-inner long"></div>
+                        <div id="explainer" class="card"></div>
                     </div>
 
-                    <div id="sentences-container">
-                    </div>
-                </div>
-
-                <div class="line"> </div>
-
-                <div class="footer">
-
-                    <div class="card-container">
-                        <div id="no-kanji-choice" class="card-inner two long setting" onclick="switchNoKanjiMode()">
-                            <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                            <label for="no-kanji-checkbox">Mode Sans-Kanji</label>
+                    <div class="sentences sentences-container">
+                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
+                            <div class="label">Phrase ${i + 1}</div>
+                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
                         </div>
-                        <div id="familiarity-choice" class="card-inner two long setting">
-                            Familiarité :&nbsp
-                            <span id="familiarity-choice-value">1542</span>
+                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
+                            <div class="label">Traduction ${i + 1}</div>
+                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
+                        </div>
+                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
+                            <div class="label">Phrase ${i + 1}</div>
+                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
+                        </div>
+                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
+                            <div class="label">Traduction ${i + 1}</div>
+                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
+                        </div>
+                        <div class="obfuscation-container" onclick="obfuscation('sentence${i + 1}')">
+                            <div class="label">Phrase ${i + 1}</div>
+                            <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
+                        </div>
+                        <div class="obfuscation-container one" onclick="obfuscation('translation${i + 1}')">
+                            <div class="label">Traduction ${i + 1}</div>
+                            <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
                         </div>
                     </div>
 
-                    <div class="sub-footer">
+                    <div id="no-kanji-choice" class="noKanji card two long setting" onclick="switchNoKanjiMode()">
+                        <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
+                        <label for="no-kanji-checkbox">Mode Sans-Kanji</label>
+                    </div>
+
+                    <div id="familiarity familiarity-choice" class="familiarity card two long setting">
+                        Familiarité :&nbsp
+                        <span id="familiarity-choice-value">1542</span>
+                    </div>
+
+                    <div class="moreInfo sub-footer">
                         <span id="amount-seen-info">Nombre de fois vus : <span id="amount-seen-value">1542</span></span>
                         <span id="date-last-seen">Date du dernier test : <span id="date-last-seen-value">02/45/2024 08h56</span></span>
                     </div>
 
+                    <div id=" unlocked-choice" class="unlocked card two long setting" onclick="switchNoKanjiMode()">
+                        <input type="checkbox" autocomplete="off" id="unlocked-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
+                        <label for="unlocked-checkbox">Verrouiller</label>
+                    </div>
+
+                    <div id=" delete-choice" class="delete card two long setting" onclick="showDeletionConfirmation()">
+                        Supprimer
+                    </div>
+
+                    <div class="nothing"></div>
+
+                    <div class="nothing"></div>
+
+                    <div class="confirm card" onclick="deleteCurrentWord()">
+                        Confirmer
+                    </div>
+
+                    <div class="cancel card" onclick="showDeletionConfirmation()">
+                        Annuler
+                    </div>
                 </div>
 
-                <div class="line"> </div>
-
-                <div class="footer">
-                    <div class="card-container">
-                        <div id="no-kanji-choice" class="card-inner two long setting" onclick="switchNoKanjiMode()">
-                            <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                            <label for="no-kanji-checkbox">Verrouiller</label>
-                        </div>
-                        <div id="familiarity-choice" class="card-inner two long setting">
-                            Supprimer
-                        </div>
-                    </div>
+                <div class="words-list-activity" style="visibility: collapse;">
+                    <table class="elegant-table"><thead>
+                        <tr>
+                            <th>Mot</th>
+                            <th>Prononciation</th>
+                            <th>Sens</th>
+                            <th>Autres Sens</th>
+                        </tr></thead>
+                        <tbody id="word-list-table">
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="main-view-container kanjiTab" style="visibility: collapse;">
+            <div class="uonihon-app kanji-app" style="visibility: collapse;">
                 this is the kanji tab Start
                 <div class="wideguy secondary-background"></div>
                 this is the kanji tab End
             </div>
-            <div class="main-view-container kanaTab" style="visibility: collapse;">
+            <div class="uonihon-app kana-app" style="visibility: collapse;">
                 this is the kana tab Start
                 <div class="wideguy tertiary-background"></div>
                 this is the kana tab End
             </div>
         </div>
 
-        <!-- SUB FOOTER TABS -->
-        <div class="tabs-container sub-sub-tabs-container">
-            <div class="tab three-tabs" onclick="switchWordListVisibility()">
-                <img class="tab-icon" src="asset/list.png" alt="Vocabulary icon">
-                <span class="tab-text">List</span>
+        <div  class="uonihon-main-space bottom-main-space">
+
+            <div class="tab list inline" onclick="switchWordListVisibility()">
+                <img class="icon" src="asset/list.png" alt="Vocabulary icon">
+                <div class="tab-text">Liste</div>
             </div>
-            <div class="tab three-tabs" onclick="getWord()">
-                <img class="tab-icon" src="asset/next.png" alt="Vocabulary icon">
-                <span class="tab-text">Next</span>
+
+            <div class="tab search inline" onclick="setVisibleTab('consumeTab')">
+                <img class="icon" src="asset/search.png" alt="Kanji icon">
+                <div class="tab-text">Chercher</div>
             </div>
-            <div class="tab three-tabs" onclick="setVisibleTab('consumeTab')">
-                <img class="tab-icon" src="asset/search.png" alt="Kanji icon">
-                <span class="tab-text">Search</span>
+
+            <div class="tab add inline" onclick="setVisibleTab('produceTab')">
+                <img class="icon" src="asset/cross.png" alt="Vocabulary icon">
+                <div class="tab-text">Ajout</div>
             </div>
+
+            <div class="tab reading inline" onclick="getWord(null, 'reading')">
+                <img class="icon" src="asset/arrow-down.png" alt="Vocabulary icon">
+                <div class="tab-text">Lire</div>
+            </div>
+
+            <div class="tab writing inline" onclick="getWord(null, 'writing')">
+                <img class="icon" src="asset/arrow-up.png" alt="Kanji icon">
+                <div class="tab-text">Dire</div>
+            </div>
+
+            <div class="tab vocabulary primary-background" onclick="setVisibleMainTab('vocabularyTab')">
+                <img class="icon" src="asset/letterW.png" alt="Vocabulary icon">
+                <div class="tab-text">Vocabulaire</div>
+            </div>
+
+            <div class="tab kanji secondary-background" onclick="setVisibleMainTab('kanjiTab')">
+                <img class="icon" src="asset/complicatedKanji.png" alt="Kanji icon">
+                <div class="tab-text">Kanji</div>
+            </div>
+
+            <div class="tab kana tertiary-background" onclick="setVisibleMainTab('kanaTab')">
+                <img class="icon" src="asset/HiraganaKa.png" alt="Kana icon">
+                <div class="tab-text">Kana</div>
+            </div>
+                
         </div>
 
-        <!-- SUB FOOTER TABS -->
-        <div class="tabs-container sub-tabs-container">
-            <div class="tab three-tabs" onclick="getWord(null, 'reading')">
-                <img class="tab-icon" src="asset/arrow-down.png" alt="Vocabulary icon">
-                <span class="tab-text">Read and Listen</span>
-            </div>
-            <div class="tab three-tabs" onclick="setVisibleTab('produceTab')">
-                <img class="tab-icon" src="asset/cross.png" alt="Vocabulary icon">
-                <span class="tab-text">Add</span>
-            </div>
-            <div class="tab three-tabs" onclick="getWord(null, 'writing')">
-                <img class="tab-icon" src="asset/arrow-up.png" alt="Kanji icon">
-                <span class="tab-text">Write and Speak</span>
-            </div>
-        </div>
+    </div>
 
-        <!-- MAIN FOOTER TABS -->
-        <div class="tabs-container main-tabs-container">
-            <div class="tab three-tabs vocabularyTab" onclick="setVisibleMainTab('vocabularyTab')">
-                <img class="tab-icon" src="asset/letterW.png" alt="Vocabulary icon">
-                <span class="tab-text">Vocabulary</span>
-            </div>
-            <div class="tab three-tabs kanjiTab" onclick="setVisibleMainTab('kanjiTab')">
-                <img class="tab-icon" src="asset/complicatedKanji.png" alt="Kanji icon">
-                <span class="tab-text">Kanji</span>
-            </div>
-            <div class="tab three-tabs kanaTab" onclick="setVisibleMainTab('kanaTab')">
-                <img class="tab-icon" src="asset/HiraganaKa.png" alt="Kana icon">
-                <span class="tab-text">Kana</span>
-            </div>
-        </div>
 
     </div>
 

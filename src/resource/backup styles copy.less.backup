@@ -1,0 +1,309 @@
+
+
+@black: #000000;
+@black-filter: invert(0%) sepia(54%) saturate(5212%) hue-rotate(87deg) brightness(99%) contrast(105%);
+
+@white: #FFFFFF;
+@white-filter: invert(99%) sepia(55%) saturate(2%) hue-rotate(81deg) brightness(109%) contrast(100%);
+
+@primary:        #0A2342;
+@primary-filter: invert(11%) sepia(39%) saturate(2072%) hue-rotate(185deg) brightness(96%) contrast(97%);
+
+@secondary:        #2CA58D;
+@secondary-filter: invert(50%) sepia(69%) saturate(407%) hue-rotate(118deg) brightness(95%) contrast(89%);
+
+@tertiary:        #C82634;
+@tertiary-filter: invert(53%) sepia(82%) saturate(4264%) hue-rotate(326deg) brightness(126%) contrast(92%);
+
+@app-colors: black, white, primary, secondary, tertiary;
+
+@current-tab-color: lighten(@primary,10%); 
+
+@main-background-color: @black;
+@main-text-color: @white;
+
+@tabs-main-color: white;
+@tabs-background-color: black;
+@tabs-border-color: white;
+
+.generate-backgrounds(@colors) {
+  .loop(@i: 1) when (@i <= length(@colors)) {
+    @color: extract(@colors, @i);
+    .@{color}-background {
+      background-color: @@color;
+    }
+    .loop(@i + 1);
+  }
+  .loop();
+}
+.generate-backgrounds(@app-colors);
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: lighten(@current-tab-color, 10%);
+  font-family: Garamond, sans-serif;
+  font-size: 35px;
+  font-weight: 600;
+  color: @main-text-color;
+}
+
+.uonihon-html-divided-in-two-main-spaces {
+
+  .uonihon-main-space {
+
+    &.top-main-space {
+
+      .uonihon-app {
+
+        &.vocabulary-app {
+
+        }
+
+        &.kanji-app {
+          
+        }
+        
+        &.kana-app {
+          
+        }
+      }
+
+    }
+      
+    &.bottom-main-space {
+
+      .tab-row {
+
+        .tab {
+
+        }
+
+      }
+
+    }
+
+  }
+  
+}
+
+  .uonihon-three-apps-space {
+    background-color: lighten(@current-tab-color, 10%);
+    height: 100%;
+    margin-bottom: 500px;
+    
+    .main-view-container {
+      display: grid;
+      column-gap: 50px;
+      height: 100%;
+
+      .footer {
+      
+        .main-footer {
+          font-size: 35px;
+        }
+        .sub-footer {
+          font-size: 25px;
+          color: darken(@white,15%);
+          margin: 10px 0;
+          margin: auto;
+          font-style: italic;
+
+          span {
+            margin: 0 10px 0 0;
+          }
+        }
+      }
+
+      #sentences-container {
+        width: 100%;
+      }
+
+      .word-test-container {
+        padding: 0 15px;
+      }
+
+      .title {
+        font-size: 35px;
+        font-weight: 750;
+      }
+
+      .content {
+        font-size: 45px;
+        font-weight: 500;
+      }
+
+      .main-content {
+        font-size: 85px;
+      }
+
+      .wideguy {
+        margin: 20px;
+        height: 200px;
+      }
+
+    }
+
+  }
+
+  .tabs-container {
+    display: flex;
+    background-color: ~'@{@{tabs-background-color}}';
+    border-top: 3px solid ~'@{@{tabs-border-color}}';
+    position: fixed;
+    width: 100%;
+    z-index: 2;
+    
+    &.main-tabs-container {
+      bottom: 0;
+    }
+    &.sub-tabs-container {
+      bottom: 145px;
+    }
+    &.sub-sub-tabs-container {
+      bottom: 290px;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: @current-tab-color;
+      border-right: 3px solid ~'@{@{tabs-border-color}}';
+      height: 120px;
+      padding-top: 22px;
+
+      &.three-tabs { width: 33.33%; }
+      &.two-tabs { width: 50%; }
+      &.one-tabs { width: 100%;  }
+
+      &.vocabularyTab {background-color: @primary;}
+      &.kanjiTab {background-color: @secondary;}
+      &.kanaTab {background-color: @tertiary;}
+
+      &:last-child { border-right: none; }
+  
+      .tab-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 8px;
+        filter: ~'@{@{tabs-main-color}-filter}';
+      }
+      
+      .tab-text {
+        font-size: 28px;
+        color: ~'@{@{tabs-main-color}}';
+      }
+    }
+  }
+  
+}
+
+.card-container {
+  display: flex; 
+  width: 100%;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.obfuscation-container {
+  border-radius: 10px;
+  display: flex;
+  margin: 10px 0 10px 0;
+  position: relative;
+  width: 100%;
+
+  .label {
+    position: absolute; 
+    top: 13px; 
+    left: 11px; 
+    font-size: 22px;
+    z-index: 1;
+    font-weight: 800;
+    font-style: italic;
+    color: darken(@white, 25%);
+  }
+  
+}
+
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center; 
+  align-items: center;
+  background-color: @primary;
+  border-radius: 10px;
+  flex-grow: 1;
+  padding: 42px 20px 30px 20px;
+  height: calc(100% - 66px);
+
+  &.obfuscated {
+    filter: brightness(0%) blur(4px);
+  }
+  &.short {
+    font-size: 65px;
+    min-height: 135px;
+  }
+  &.long {
+    font-size: 35px;
+    min-height: 70px;
+    text-align: left; 
+  }
+  &.setting {
+    flex-direction: row;
+    background-color: lighten(@primary,12%);
+    height: unset;
+    padding: 0;
+    min-height: 100px;
+    margin-bottom: 10px;
+  }
+}
+.line {
+  margin: 12px 0;
+  width: 100%;
+  height: 3px;
+  background-color: @white;
+
+  &.thicher {
+    height: 4px;
+    margin: 16px 0;
+  }
+}
+
+.checkbox-style {
+  transform: scale(2.5);
+  margin-right: 25px;
+}
+
+
+
+
+.elegant-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 24px;
+  text-wrap: nowrap;
+  border: 1px solid @white;
+}
+
+.elegant-table th {
+  background-color: @black;
+  color: darken(@white,15%);
+  font-style: italic;
+  font-weight: 900;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid @white;
+}
+
+.elegant-table td {
+  padding: 10px;
+  border-bottom: 1px solid @white;
+}
+
+.elegant-table tr:nth-child(even) {
+  background-color: @primary;
+}
