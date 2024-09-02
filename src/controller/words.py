@@ -6,6 +6,7 @@ import datetime
 from tempfile import mkstemp
 from shutil import move, copymode
 from os import fdopen, remove
+from helpers import util
 
 @route('/word', method = ['GET'])
 def wordGetNext():
@@ -18,11 +19,11 @@ def wordGet(id="chooseBest"):
     usageList = []
     focus = request.query.focus or 'no-focus'
 
-    with open('resource\\data\\words\\words.txt', 'r', encoding="utf-8") as wordsFile:
+    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
         wordsList = wordsFile.read().splitlines()
-    with open('resource\\data\\words\\sentences.txt', 'r', encoding="utf-8") as sentencesFile:
+    with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
         sentencesList = sentencesFile.read().splitlines()
-    with open('resource\\data\\words\\usage.txt', 'r', encoding="utf-8") as usageFile:
+    with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
         usageList = usageFile.read().splitlines()
     
     current_time = datetime.datetime.now()
@@ -69,21 +70,21 @@ def saveWord():
 
 @route('/word/words/all', method = ['GET'])
 def getAllWords():
-    with open('resource\\data\\words\\words.txt', 'r', encoding="utf-8") as wordsFile:
+    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
         wordsList = wordsFile.read().splitlines()
     return '\n'.join(map(lambda w: '|'.join(w.split('|')[:-1]), wordsList))
 
 
 @route('/word/sentences/all', method = ['GET'])
 def getAllWords():
-    with open('resource\\data\\words\\sentences.txt', 'r', encoding="utf-8") as sentencesFile:
+    with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
         sentencesList = sentencesFile.read()
     return sentencesList
 
 
 @route('/word/usage/all', method = ['GET'])
 def getAllWords():
-    with open('resource\\data\\words\\usage.txt', 'r', encoding="utf-8") as usageFile:
+    with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
         usageList = usageFile.read()
     return usageList
 
@@ -156,12 +157,11 @@ def calculate_score(word_data, current_time):
     return score
 
 def updateValuesForWordAndFocus(word, now, focus="no-focus"):
-    file_path = 'resource\\data\\words\\usage.txt'
     new_line_as_array = []
     #Create temp file
     fh, abs_path = mkstemp()
     with fdopen(fh,'w') as new_file:
-         with open(file_path) as old_file:
+         with open(util.SENTENCES_PATH) as old_file:
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
                 if splitted[0].strip() == word["id"]:
@@ -180,11 +180,11 @@ def updateValuesForWordAndFocus(word, now, focus="no-focus"):
                 else:
                     new_file.write(line)
     #Copy the file permissions from the old file to the new file
-    copymode(file_path, abs_path)
+    copymode(util.USAGE_PATH, abs_path)
     #Remove original file
-    remove(file_path)
+    remove(util.USAGE_PATH)
     #Move new file
-    move(abs_path, file_path)
+    move(abs_path, util.USAGE_PATH)
     return new_line_as_array
 
 '''
