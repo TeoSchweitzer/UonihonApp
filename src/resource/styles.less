@@ -1,4 +1,4 @@
-body { margin: 0; box-sizing: border-box;}
+body,html { margin: 0; box-sizing: border-box; background-color: lighten(@current-tab-color, 10%); touch-action: manipulation;}
 
 @black: #000000;
 @black-filter: invert(0%) sepia(54%) saturate(5212%) hue-rotate(87deg) brightness(99%) contrast(105%);
@@ -33,7 +33,7 @@ body { margin: 0; box-sizing: border-box;}
   .loop(@i: 1) when (@i <= length(@colors)) {
     @color: extract(@colors, @i);
     .@{color}-background {
-      background-color: @@color;
+      background-color: @@color !important;
     }
     .loop(@i + 1);
   }
@@ -51,7 +51,7 @@ body { margin: 0; box-sizing: border-box;}
   .uonihon-main-space {
 
     &.top-main-space {
-      margin-bottom: 300px;
+        margin-bottom: 300px;
 
       .uonihon-app {
 
@@ -71,6 +71,8 @@ body { margin: 0; box-sizing: border-box;}
               'explainer explainer explainer   explainer'
               'sentences sentences sentences   sentences'
               'linec linec linec linec'
+              'sentenceAdd sentenceAdd sentenceAdd sentenceAdd'
+              'linez linez linez linez'
               'noKanji   noKanji   familiarity familiarity'
               'moreInfo  moreInfo  moreInfo    moreInfo'
               'lined lined lined lined'
@@ -80,12 +82,14 @@ body { margin: 0; box-sizing: border-box;}
             .line1 { grid-area: linea;}
             .line3 { grid-area: linec;}
             .line4 { grid-area: lined;}
-            .word { grid-area: word;} 
-            .reading { grid-area: reading;}
-            .meaning { grid-area: meaning;}
-            .alternative { grid-area: alternative;}
+            .line5 { grid-area: linez;}
+            .word { grid-area: word; height: 100%;} 
+            .reading { grid-area: reading; height: 100%;}
+            .meaning { grid-area: meaning; height: 100%;}
+            .alternative { grid-area: alternative; height: 100%;}
             .explainer { grid-area: explainer;}
             .sentences { grid-area: sentences;}
+            .sentenceAdd { grid-area: sentenceAdd;}
             .noKanji { grid-area: noKanji;}
             .familiarity { grid-area: familiarity;}
             .moreInfo { grid-area: moreInfo; font-size: 28px; font-style: italic; color: darken(@white, 20%);}
@@ -121,10 +125,10 @@ body { margin: 0; box-sizing: border-box;}
       z-index: 2;
       display: grid;  
       grid-template-areas:
-        'wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput'
         'list list list list                           search search     search search     add add add add'
         'reading reading reading reading               reading reading   writing writing   writing writing writing writing'
-        'vocabulary vocabulary vocabulary vocabulary   kanji kanji       kanji kanji       kana kana kana kana';
+        'vocabulary vocabulary vocabulary vocabulary   kanji kanji       kanji kanji       kana kana kana kana'
+        'wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput';
 
       .wordInput { grid-area: wordInput;}
       .list { grid-area: list;}
@@ -164,17 +168,27 @@ body { margin: 0; box-sizing: border-box;}
 
 
 .line {
-  margin: 15px 0;
-  width: 100%;
+  margin: 15px auto;
+  width: 96%;
   height: 3px;
+
   background-color: @white;
 
   &.thicker {
-    height: 5px;
-    margin: 18px 0;
+    height: 8px;
+    width: 200%;
+    margin: 18px 0 18px -20px;
   }
 }
 
+.sentenceAdd {
+  margin: 0 auto;
+  padding: 10px 25px !important;
+  border-radius: 10px;
+  align-items: center;
+  font-style: italic;
+  background-color: lighten(@primary,8%) !important;
+}
 
 .card {
   text-align: center;
@@ -182,6 +196,10 @@ body { margin: 0; box-sizing: border-box;}
   background-color: @primary;
   min-height: 60px;
   border-radius: 10px;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 
   &.align-start {
     text-align: start;
@@ -189,7 +207,12 @@ body { margin: 0; box-sizing: border-box;}
   &.even-padding {
     padding: 28px 0;
     font-size: 34px;
+    flex-direction: row;
+    gap: 10px;
     background-color: lighten(@primary, 11%);
+  }
+  &.unbound-height {
+    min-height: 0;
   }
 }
 
@@ -197,9 +220,14 @@ body { margin: 0; box-sizing: border-box;}
   font-size: 55px;
   padding-bottom: 45px;
 }
+.small {
+  font-size: 27px;
+}
+
 
 .obfuscation-container {
   position: relative;
+  display: flex;
 
   .label {
     font-family: serif;
@@ -224,20 +252,28 @@ body { margin: 0; box-sizing: border-box;}
   height: 60px;
   margin: 0 14px;
   filter: ~'@{@{tabs-main-color}-filter}';
+
+  &.small {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
 }
 
 .checkbox-style {
   transform: scale(2.3);
   margin: 0 12px 0 0;
   vertical-align: middle;
+  margin-bottom: 8px;
 }
 
 .word-search-input {
-    width: 100%;
+    width: 98%;
     height: 70px;
     font-size: 45px;
     font-family: "EB Garamond";
     font-weight: 600;
+    margin: 10px;
 }
 
 .no-padding {
@@ -273,6 +309,10 @@ body { margin: 0; box-sizing: border-box;}
 
   tr:nth-child(even) {
     background-color: @primary;
+  }
+
+  tr:nth-child(odd) {
+    background-color: lighten(@primary,10%);
   }
 
 }

@@ -24,9 +24,10 @@
 
     <script>
 
-        const HOST = "http://localhost:8080"
+        const HOST = "http://" + window.location.host
 
         let words = ""
+        let filtered = ""
         let sentences = ""
         let usage = ""
         let noKanjiMode = false
@@ -38,6 +39,7 @@
                 method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
             }).then((response) => response.text()).then((response) => {
                 words = response;
+                filtered = words;
             });
         }
 
@@ -81,16 +83,13 @@
                 .then((response) => response.json())
                 .then((json) => {
                     resetObfuscation();
+                    toHide = []
                     if (currentFocus=="writing") {
-                        obfuscation('word');
-                        obfuscation('reading');
-                        obfuscation('explainer');
+                        toHide = ['word','reading','explainer']
                     } else if (currentFocus=="reading") {
-                        obfuscation('meaning');
-                        obfuscation('reading');
-                        obfuscation('alternative');
-                        obfuscation('explainer');
+                        toHide = ['meaning','reading','alternative','explainer']
                     }
+                    toHide.forEach(id => document.getElementById(id).classList.add("obfuscated"))
                     obf = v => ((v=='jp' && currentFocus=="writing") || (v=='tr' && currentFocus=="reading")) ? 'obfuscated' : ''
 
                     currentWord = {...json}
@@ -111,11 +110,11 @@
                     (json.sentences ?? [])?.forEach(function (sentence, i) {
                         let htmlSentence = `
               <div class="line"> </div>
-              <div class="obfuscation-container" style="margin: 12px 0" onclick="obfuscation('sentence${i + 1}')">
+              <div class="obfuscation-container" style="margin: 12px 0" onclick="obfuscateOrEdit(event, 'sentence${i + 1}')">
                 <div class="label">Phrase ${i + 1}</div>
                 <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
               </div>
-              <div class="obfuscation-container" onclick="obfuscation('translation${i + 1}')">
+              <div class="obfuscation-container" onclick="obfuscateOrEdit(event, 'translation${i + 1}')">
                 <div class="label">Traduction ${i + 1}</div>
                 <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
               </div>
@@ -123,6 +122,45 @@
                         sentences.insertAdjacentHTML('beforeend', htmlSentence)
                     });
                 });
+        }
+
+        function obfuscateOrEdit(event, id) {
+            simpleOrDoubleClickHandler(event, ()=>reveal(id), ()=>{reveal(id);edit(id)})
+        }
+
+        function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfDoubleClick) {
+            if (event.detail === 1) {
+                timer = setTimeout(() => {
+                    toCallIfSimpleClick()
+                }, 200)
+            } else if (event.detail === 2) {
+                clearTimeout(timer)
+                toCallIfDoubleClick()
+            }
+        }
+
+        function edit(divId) {
+            const div = document.getElementById(divId);
+            if (!div) return; // Exit if div not found
+
+            // Make the div editable
+            div.contentEditable = true;
+
+            // Focus the div
+            div.focus();
+
+            // Place the cursor at the end of the text
+            const range = document.createRange();
+            range.selectNodeContents(div);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Add event listener to handle when editing is complete
+            div.addEventListener('blur', function() {
+                div.contentEditable = false;
+
+            });
         }
 
         function doSomething(toWrite) {
@@ -167,33 +205,73 @@
         async function switchWordListVisibility(goToWordList) {
             var listNode = document.querySelector('.words-list-activity');
             var testNode = document.querySelector('.word-tester-activity');
-            var listTableNode = document.querySelector('#word-list-table');
             if (goToWordList || listNode.style.display == 'none') {
                 listNode.style.display = 'block'
                 testNode.style.display = 'none';
-                listTableNode.replaceChildren();
                 await getAllWords()
-                words.split('\n').forEach(function (wordLine, i) {
-                    if (wordLine == "") return
-                    let splittedLine = wordLine.split('|')
-                    let htmlSentence = `
-                    <tr id="wordListIdx${i + 1}" onclick="(async () => {await getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
-                        <td>${splittedLine[1]}</td>
-                        <td>${splittedLine[2]}</td>
-                        <td>${splittedLine[3]}</td>
-                        <td>${splittedLine[4]}</td>
-                    </tr>`
-                    listTableNode.insertAdjacentHTML('beforeend', htmlSentence)
-                });
+                setWordList(words)
             } else {
                 listNode.style.display = 'none';
                 testNode.style.display = 'grid';
             }
         }
 
+        function setWordList(wordList) {
+            let listTableNode = document.querySelector('#word-list-table');
+            listTableNode.replaceChildren();
+            wordList.split('\n').forEach(function (wordLine, i) {
+                if (wordLine == "") return
+                let splittedLine = wordLine.split('|')
+                let htmlSentence = `
+                <tr id="wordListIdx${i + 1}" onclick="(async () => {await getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
+                    <td>${splittedLine[1]}</td>
+                    <td>${splittedLine[2]}</td>
+                    <td>${splittedLine[3]}</td>
+                    <td>${splittedLine[4]}</td>
+                </tr>`
+                listTableNode.insertAdjacentHTML('beforeend', htmlSentence)
+            });
+        }
+
         function startSearchingInWordList() {
             switchWordListVisibility(true)
+            switchSearchBarVisibility(true, true)
+        }
 
+        function switchSearchBarVisibility(visible, focusOnIt) {
+            var searchBarNode = document.getElementById('search-bar');
+            let searchBarInputNode = document.getElementById('search-bar-input')
+            if (visible || searchBarNode.style.display == 'none') {
+                searchBarNode.style.display = 'block';
+                searchBarNode.addEventListener('input', filterWords);
+            } else {
+                searchBarNode.removeEventListener('input', filterWords)
+                filtered = words
+                searchBarInputNode.value = ""
+                searchBarNode.style.display = 'none';
+            }
+            if (focusOnIt) {
+                switchTabsVisibility(false)
+                searchBarInputNode.focus();
+            } else {
+                switchTabsVisibility(true)
+            }
+        }
+
+        function switchTabsVisibility(visible) {
+            let tabs = document.getElementsByClassName('tab')
+            shouldBeVisible = (visible || tabs[0].style.display == 'none')
+            for (let i = 0; i < tabs.length; i++) {
+                if (shouldBeVisible) {
+                    tabs[i].style = {}
+                } else {
+                    tabs[i].style.display = 'none'
+                }
+            }
+        }
+
+        function filterWords(event) {
+            setWordList((words.split('\n').filter(w => w.includes(event.target.value))).join('\n'))
         }
 
         function resetObfuscation() {
@@ -205,14 +283,10 @@
             })
         }
 
-        function obfuscation(id) {
-            let element = document.getElementById(id)
-            if (element.classList.contains("obfuscated")) {
-                element.classList.remove("obfuscated");
-            } else {
-                element.classList.add("obfuscated");
-            }
+        function reveal(id) {
+            document.getElementById(id).classList.remove("obfuscated");
         }
+
         function switchNoKanjiMode(value) {
             currentWord.useReading = value??(currentWord.useReading=="0" ? "1" : "0")
             const isNoKanji = currentWord.useReading == "0" ? false : true
@@ -245,32 +319,34 @@
             <div class="uonihon-app vocabulary-app">
                 <div class="word-tester-activity" >
 
-                    <div class="line1 line"> </div>
-                    <div class="line3 line thicker"> </div>
-                    <div class="line4 line thicker"> </div>
 
-                    <div class="word obfuscation-container" onclick="obfuscation('word')">
+                    <div class="line1 line"> </div>
+                    <div class="line5 line thicker"> </div>
+                    <div class="line3 line"> </div>
+                    <div class="line4 line "> </div>
+
+                    <div class="word obfuscation-container" onclick="reveal('word')" >
                         <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
                         <div id='word' class="card big-font">
                         </div>
                     </div>
-                    <div class="reading obfuscation-container" onclick="obfuscation('reading')">
+                    <div class="reading obfuscation-container" onclick="reveal('reading')">
                         <div class="label">Prononciation</div>
                         <div id="reading" class="card big-font"></div>
                     </div>
 
-                    <div class="meaning obfuscation-container" onclick="obfuscation('meaning')">
+                    <div class="meaning obfuscation-container" onclick="reveal('meaning')">
                         <div class="label">Sens Principal</div>
                         <div id="meaning" class="card"></div>
                     </div>
 
-                    <div class="alternative obfuscation-container" onclick="obfuscation('alternative')">
+                    <div class="alternative obfuscation-container" onclick="reveal('alternative')">
                         <div class="label">Autres Sens</div>
                         <div id="alternative" class="card">
                         </div>
                     </div>
 
-                    <div class="explainer obfuscation-container" onclick="obfuscation('explainer')">
+                    <div class="explainer obfuscation-container" onclick="reveal('explainer')">
                         <div class="label">Explications</div>
                         <div id="explainer" class="card align-start"></div>
                     </div>
@@ -278,9 +354,14 @@
                     <div id="sentences-container" class="sentences">
                     </div>
 
+                    <div id="sentences-Adder" class="sentenceAdd card even-padding">
+                        <img src="asset/cross.png" class="icon small"></button>
+                        <span class="small">Ajouter une phrase</span>
+                    </div>
+
                     <div id="no-kanji-choice" class="noKanji card even-padding" onclick="switchNoKanjiMode()">
                         <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                        <span>Mode Sans-Kanji</span>
+                        <span class="checkbox-label">Mode Sans-Kanji</span>
                     </div>
 
                     <div id="familiarity familiarity-choice" class="familiarity card even-padding">
@@ -295,7 +376,7 @@
 
                     <div id="unlocked-choice" class="unlocked card even-padding" onclick="switchUnlockedMode()">
                         <input type="checkbox" autocomplete="off" id="unlocked-checkbox" class="checkbox-style">
-                        <span>Évaluable</span>
+                        <span class="checkbox-label">Évaluable</span>
                     </div>
 
                     <div id=" delete-choice" class="delete card even-padding" onclick="showDeletionConfirmation()">
@@ -316,6 +397,11 @@
                 </div>
 
                 <div class="words-list-activity" style="display: none;">
+                    
+                    <div id="search-bar" class="wordInput no-padding primary-background" style="display: none;">
+                        <input id="search-bar-input" type="search" class="word-search-input" onfocusout="switchSearchBarVisibility(false)"></input>
+                    </div>
+
                     <table class="elegant-table"><thead>
                         <tr>
                             <th>Mot</th>
@@ -343,9 +429,6 @@
 
         <div class="uonihon-main-space bottom-main-space">
 
-            <div class="tab wordInput no-padding">
-                <input type="search" class="word-search-input"></input>
-            </div>
             <div class="tab list inline" onclick="switchWordListVisibility()">
                 <img class="icon" src="asset/list.png" alt="Vocabulary icon">
                 <div class="tab-text">Liste</div>

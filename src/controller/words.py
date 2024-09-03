@@ -161,7 +161,7 @@ def updateValuesForWordAndFocus(word, now, focus="no-focus"):
     #Create temp file
     fh, abs_path = mkstemp()
     with fdopen(fh,'w') as new_file:
-         with open(util.SENTENCES_PATH) as old_file:
+         with open(util.USAGE_PATH) as old_file:
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
                 if splitted[0].strip() == word["id"]:
