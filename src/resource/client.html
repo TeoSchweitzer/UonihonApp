@@ -94,34 +94,98 @@
 
                     currentWord = {...json}
 
-                    document.getElementById('word').innerText = json.word ?? "";
-                    document.getElementById('reading').innerText = json.reading ?? "";
-                    document.getElementById('meaning').innerText = json.meaning ?? "";
-                    document.getElementById('alternative').innerText = json.alternative ?? "";
-                    document.getElementById('explainer').innerText = (json.explainer?.replace(/\\n/g, "\n")) ?? "";
-                    document.getElementById('familiarity-choice-value').innerText = json.familiarity ?? "";
-                    document.getElementById('amount-seen-value').innerText = json.testAmount ?? "";
-                    document.getElementById('date-last-seen-value').innerText = json.lastTestDate ?? "";
-                    switchNoKanjiMode(currentWord.useReading)
-                    switchUnlockedMode(currentWord.unlocked)
-
-                    var sentences = document.getElementById('sentences-container');
-                    sentences.replaceChildren();
-                    (json.sentences ?? [])?.forEach(function (sentence, i) {
-                        let htmlSentence = `
-              <div class="line"> </div>
-              <div class="obfuscation-container" style="margin: 12px 0" onclick="obfuscateOrEdit(event, 'sentence${i + 1}')">
-                <div class="label">Phrase ${i + 1}</div>
-                <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
-              </div>
-              <div class="obfuscation-container" onclick="obfuscateOrEdit(event, 'translation${i + 1}')">
-                <div class="label">Traduction ${i + 1}</div>
-                <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
-              </div>
-            `
-                        sentences.insertAdjacentHTML('beforeend', htmlSentence)
-                    });
+                    setDisplayedWordToCurrentWord()
                 });
+        }
+
+        let ARLIAI_API_KEY = "5a106e75-87b5-4a10-805a-d927325cc77e"
+
+        function makePrompt(systemPrompt, userPrompt) {
+            return "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n" 
+                + systemPrompt
+                + "<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n"
+                + userPrompt
+                + "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
+
+        } 
+
+        function explainerPrompt(word) {
+            return makePrompt(
+                "You are an assistant AI specialized in helping french students in their learning of the japanese language.",
+                "Écris une petite explication qui contextualise l'usage du mot japonais \""+word+"\". La petite explication doit rester courte, deux ou trois phrases, et ne doit pas donner d'exemple d'usage. Elle doit simplement donner les contextes d'utilisation les plus courants."
+            )
+        }
+
+        function sentencePrompt(word) {
+            return makePrompt(
+                "You are an assistant AI specialized in japanese teaching and japanese to french translations that always directly returns valid JSON formatted answers of the requested format. The responses must be parsable JSOn objects, so the answers can't contain preambules, explanations, or anything other then the JSON object.",
+                "Écris une phrase en japonais qui illustre parfaitement l'usage typique du mot japonais \""+word+"\", ainsi que sa traduction en français. La phrase doit permettre de bien comprendre comment utiliser le mot \""+word+"\" sans être trop longue, et la traduction française doit fidélement retranscrire le sens de la phrase. Le format de la réponse DOIT être un objet JSON qui suit le schéma : { japanese: \"<phrase japonaise utilisant "+word+">\", translation: \"<traduction française>\" }"
+            )
+        }
+
+        listOfRequestsToLlm = []
+        function getTextFromLlm(prompt, doWithResult) {
+            listOfRequestsToLlm.push(() => {
+                fetch("https://api.arliai.com/v1/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${ARLIAI_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "Meta-Llama-3.1-8B-Instruct",
+                        "prompt": prompt,
+                        "repetition_penalty": 1.1,
+                        "temperature": 0.7,
+                        "top_p": 0.9,
+                        "top_k": 40,
+                        "max_tokens": 1024
+                    })
+                }).then(response => response.json())
+                  .then(json => doWithResult(json.choices[0].text))
+                  .finally(() => {
+                    listOfRequestsToLlm.splice(0,1)
+                    if (listOfRequestsToLlm.length > 0) {
+                        listOfRequestsToLlm[0]()
+                    }
+                  })
+            })
+            if (listOfRequestsToLlm.length == 1) {
+                listOfRequestsToLlm[0]()
+            }
+        }
+
+        function setDisplayedWordToCurrentWord() {
+            document.getElementById('word').innerText = currentWord.word ?? "";
+            document.getElementById('reading').innerText = currentWord.reading ?? "";
+            document.getElementById('meaning').innerText = currentWord.meaning ?? "";
+            document.getElementById('alternative').innerText = currentWord.alternative ?? "";
+            document.getElementById('explainer').innerText = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
+            document.getElementById('familiarity-choice-value').innerText = currentWord.familiarity ?? "";
+            document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
+            document.getElementById('date-last-seen-value').innerText = currentWord.lastTestDate ?? "";
+            switchNoKanjiMode(currentWord.useReading)
+            switchUnlockedMode(currentWord.unlocked)
+            if ((currentWord.explainer??"") == "") {
+                getTextFromLlm(explainerPrompt(currentWord.word), (result) => document.getElementById('explainer').innerText = result)
+            }
+
+            let sentencesNode = document.getElementById('sentences-container');
+            sentencesNode.replaceChildren();
+            (currentWord.sentences ?? [])?.forEach(function (sentence, i) {
+                let htmlSentence = `
+                    <div class="line"> </div>
+                    <div class="obfuscation-container" style="margin: 12px 0" onclick="obfuscateOrEdit(event, 'sentence${i + 1}')">
+                    <div class="label">Phrase ${i + 1}</div>
+                    <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
+                    </div>
+                    <div class="obfuscation-container" onclick="obfuscateOrEdit(event, 'translation${i + 1}')">
+                    <div class="label">Traduction ${i + 1}</div>
+                    <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
+                    </div>
+                `
+                sentencesNode.insertAdjacentHTML('beforeend', htmlSentence)
+            });
         }
 
         function obfuscateOrEdit(event, id) {
@@ -159,7 +223,14 @@
             // Add event listener to handle when editing is complete
             div.addEventListener('blur', function() {
                 div.contentEditable = false;
-
+                if (div.textContent == "" && (divId.includes("sentence") || divId.includes("translation"))) {
+                    currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
+                    setDisplayedWordToCurrentWord()
+                }
+                if (div.textContent == "" && divId=="explainer") {
+                    currentWord.explainer = ""
+                    setDisplayedWordToCurrentWord()
+                }
             });
         }
 
@@ -312,6 +383,41 @@
             }
         }
 
+        function addNewSentence() {
+            if ((currentWord?.sentences??[]).length == 0) {
+                currentWord.sentences = [];
+            }
+            currentWord.sentences.push({japanese:"", translation:""});
+            setDisplayedWordToCurrentWord();
+            recursiveSentenceMaker();
+        }
+
+        function recursiveSentenceMaker() {
+            getTextFromLlm(sentencePrompt(currentWord.word), (result) => {
+                if ((currentWord?.sentences??[]).length == 0) {
+                    currentWord.sentences = [];
+                }
+                let parsed = undefined;
+                try {
+                    parsed = JSON.parse(result);
+                } catch(e) {
+                    return recursiveSentenceMaker();
+                }
+                let spotAlreadyFound = false
+                for (let i = 0; i < currentWord.sentences.length; i++) {
+                    if (currentWord.sentences[i].japanese == "" && currentWord.sentences[i].translation == "") {
+                        if (spotAlreadyFound == true) {
+                            recursiveSentenceMaker();
+                        } else {
+                            currentWord.sentences[i] = parsed;
+                            setDisplayedWordToCurrentWord();
+                            spotAlreadyFound = true;
+                        }
+                    }
+                }
+            });
+        }
+
     </script>
 
     <div class="uonihon-html-divided-in-two-main-spaces">
@@ -346,7 +452,7 @@
                         </div>
                     </div>
 
-                    <div class="explainer obfuscation-container" onclick="reveal('explainer')">
+                    <div class="explainer obfuscation-container" onclick="obfuscateOrEdit(event, 'explainer')">
                         <div class="label">Explications</div>
                         <div id="explainer" class="card align-start"></div>
                     </div>
@@ -354,7 +460,7 @@
                     <div id="sentences-container" class="sentences">
                     </div>
 
-                    <div id="sentences-Adder" class="sentenceAdd card even-padding">
+                    <div id="sentences-Adder" class="sentenceAdd card even-padding" onclick="addNewSentence()">
                         <img src="asset/cross.png" class="icon small"></button>
                         <span class="small">Ajouter une phrase</span>
                     </div>
