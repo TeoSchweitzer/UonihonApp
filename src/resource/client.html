@@ -98,53 +98,88 @@
                 });
         }
 
-        let ARLIAI_API_KEY = "5a106e75-87b5-4a10-805a-d927325cc77e"
-
-        function makePrompt(systemPrompt, userPrompt) {
-            return "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n" 
-                + systemPrompt
-                + "<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n"
-                + userPrompt
-                + "<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-
-        } 
-
         function explainerPrompt(word) {
-            return makePrompt(
-                "You are an assistant AI specialized in helping french students in their learning of the japanese language.",
-                "Écris une petite explication qui contextualise l'usage du mot japonais \""+word+"\". La petite explication doit rester courte, deux ou trois phrases, et ne doit pas donner d'exemple d'usage. Elle doit simplement donner les contextes d'utilisation les plus courants."
-            )
+            return {
+                systemPrompt :
+                    "You are an assistant AI specialized in helping french students in their learning of the japanese language.",
+                userPrompt :
+                    "Écris une petite explication qui contextualise l'usage du mot japonais \""+word+"\". "
+                        +"La petite explication doit rester courte, deux ou trois phrases, et ne doit pas donner d'exemple d'usage. "
+                        +"Elle doit simplement donner les contextes d'utilisation les plus courants.",
+            }
         }
 
         function sentencePrompt(word) {
-            return makePrompt(
-                "You are an assistant AI specialized in japanese teaching and japanese to french translations that always directly returns valid JSON formatted answers of the requested format. The responses must be parsable JSOn objects, so the answers can't contain preambules, explanations, or anything other then the JSON object.",
-                "Écris une phrase en japonais qui illustre parfaitement l'usage typique du mot japonais \""+word+"\", ainsi que sa traduction en français. La phrase doit permettre de bien comprendre comment utiliser le mot \""+word+"\" sans être trop longue, et la traduction française doit fidélement retranscrire le sens de la phrase. Le format de la réponse DOIT être un objet JSON qui suit le schéma : { japanese: \"<phrase japonaise utilisant "+word+">\", translation: \"<traduction française>\" }"
-            )
+            return {
+                systemPrompt : 
+                    "You are an assistant AI specialized in japanese teaching and japanese to french translations "
+                        +"that always directly returns valid JSON formatted answers of the requested format. "
+                        +"The responses must be parsable JSON objects, so the answers can't contain preambules, explanations, "
+                        +"or anything other then the JSON object.",
+                userPrompt :
+                    "Écris une phrase en japonais qui illustre parfaitement l'usage typique du mot japonais \""+word+"\", "
+                        +"ainsi que sa traduction en français. La phrase doit permettre de bien comprendre comment utiliser le mot \""+word+"\", "
+                        +"et la traduction française doit fidélement retranscrire le sens de la phrase. "
+                        +"Le format de la réponse DOIT être un objet JSON qui suit le schéma : "
+                        +"{ japanese: \"<phrase japonaise utilisant "+word+">\", translation: \"<traduction française>\" }",
+            }
         }
 
-        listOfRequestsToLlm = []
-        function getTextFromLlm(prompt, doWithResult) {
+        function meaningPrompt(word) {
+            return {
+                systemPrompt : 
+                    "You are a japanese to french translation system that has a singular function : taking a japanese word or idiom as input, "
+                        +"and returning the best translations possible for it, in french. You don't give explanations or prembules, "
+                        +"only the translations, separated by commas (\",\"), with the best and most common translation first.",
+                userPrompt :
+                    word
+            }
+        }
+
+        function readingPrompt(word) {
+            return {
+                systemPrompt: 
+                    "あなたはふりがな生成器で、どんな日本語の単語でも入力として受け取り、その仮名形を返すことができます。"
+                        +"返答では、文章や説明、前置きを書かず、リクエストされた単語の仮名形のみを直接提供し、それ以外は何も書かないでください。",
+                userPrompt: 
+                    word
+            }
+        }
+
+
+        let ARLIAI_API_KEY = "5a106e75-87b5-4a10-805a-d927325cc77e"
+        let MEDIUM_MODEL = "Mistral-Nemo-12B-Instruct-2407"
+        let SMALL_MODEL = "Meta-Llama-3.1-8B-Instruct"
+        let listOfRequestsToLlm = []
+
+        function getTextFromLlm(prompt, model, doWithResult) {
             listOfRequestsToLlm.push(() => {
-                fetch("https://api.arliai.com/v1/completions", {
+                fetch("https://api.arliai.com/v1/chat/completions", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${ARLIAI_API_KEY}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        "model": "Meta-Llama-3.1-8B-Instruct",
-                        "prompt": prompt,
+                        "model": model,
+                        "messages": [
+                            { "role": "system",
+                              "content": prompt.systemPrompt},
+                            { "role": "user",
+                              "content": prompt.userPrompt}
+                        ],
                         "repetition_penalty": 1.1,
                         "temperature": 0.7,
                         "top_p": 0.9,
                         "top_k": 40,
                         "max_tokens": 1024
                     })
-                }).then(response => response.json())
-                  .then(json => doWithResult(json.choices[0].text))
+                })
+                  .then(response => response.json())
+                  .then(json => doWithResult(json.choices[0].message.content))
+                  .catch(error => alert(error))
                   .finally(() => {
-                    listOfRequestsToLlm.splice(0,1)
+                    listOfRequestsToLlm.shift()
                     if (listOfRequestsToLlm.length > 0) {
                         listOfRequestsToLlm[0]()
                     }
@@ -166,9 +201,6 @@
             document.getElementById('date-last-seen-value').innerText = currentWord.lastTestDate ?? "";
             switchNoKanjiMode(currentWord.useReading)
             switchUnlockedMode(currentWord.unlocked)
-            if ((currentWord.explainer??"") == "") {
-                getTextFromLlm(explainerPrompt(currentWord.word), (result) => document.getElementById('explainer').innerText = result)
-            }
 
             let sentencesNode = document.getElementById('sentences-container');
             sentencesNode.replaceChildren();
@@ -186,6 +218,35 @@
                 `
                 sentencesNode.insertAdjacentHTML('beforeend', htmlSentence)
             });
+
+
+            if ((currentWord.reading??"") == "") {
+                getTextFromLlm(readingPrompt(currentWord.word), MEDIUM_MODEL, (result) => {
+                    currentWord.reading = result;
+                    document.getElementById('reading').innerText = result;
+                })
+            }
+            if ((currentWord.meaning??"") == "" && (currentWord.alternative??"") == "") {
+                getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, async (result) => {
+                    while (!result || result == "" || (result.split(',')?.length??0) == 0 || result.split(',')[0] == "") {
+                        await getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, (next) => { result = next });
+                    }
+                    splitted = result.split(',')
+                    currentWord.meaning = splitted.shift();
+                    currentWord.alternative = splitted.join(',');
+                    document.getElementById('meaning').innerText = currentWord.meaning;
+                    document.getElementById('alternative').innerText = currentWord.alternative;
+                });
+            }
+            if ((currentWord.explainer??"") == "") {
+                getTextFromLlm(explainerPrompt(currentWord.word), MEDIUM_MODEL, (result) => {
+                    currentWord.explainer = result;
+                    document.getElementById('explainer').innerText = result;
+                });
+            }
+            if (((currentWord.sentences??[])?.length??0) == 0) {
+                recursiveSentenceMaker()
+            }
         }
 
         function obfuscateOrEdit(event, id) {
@@ -221,15 +282,16 @@
             selection.addRange(range);
 
             // Add event listener to handle when editing is complete
-            div.addEventListener('blur', function() {
+            div.addEventListener('blur', function handleEndOfEditing() {
+                div.removeEventListener('blur', handleEndOfEditing);
                 div.contentEditable = false;
                 if (div.textContent == "" && (divId.includes("sentence") || divId.includes("translation"))) {
                     currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
                     setDisplayedWordToCurrentWord()
                 }
-                if (div.textContent == "" && divId=="explainer") {
-                    currentWord.explainer = ""
-                    setDisplayedWordToCurrentWord()
+                else if (div.textContent == "") {
+                    if (divId!="word") currentWord[divId] = "";
+                    setDisplayedWordToCurrentWord();
                 }
             });
         }
@@ -393,7 +455,7 @@
         }
 
         function recursiveSentenceMaker() {
-            getTextFromLlm(sentencePrompt(currentWord.word), (result) => {
+            getTextFromLlm(sentencePrompt(currentWord.word), MEDIUM_MODEL, (result) => {
                 if ((currentWord?.sentences??[]).length == 0) {
                     currentWord.sentences = [];
                 }
@@ -403,16 +465,14 @@
                 } catch(e) {
                     return recursiveSentenceMaker();
                 }
-                let spotAlreadyFound = false
+                if (!parsed.japanese || !parsed.translation || !parsed.japanese.includes(currentWord.word) || parsed.translation == "") {
+                    return recursiveSentenceMaker();
+                }
                 for (let i = 0; i < currentWord.sentences.length; i++) {
                     if (currentWord.sentences[i].japanese == "" && currentWord.sentences[i].translation == "") {
-                        if (spotAlreadyFound == true) {
-                            recursiveSentenceMaker();
-                        } else {
-                            currentWord.sentences[i] = parsed;
-                            setDisplayedWordToCurrentWord();
-                            spotAlreadyFound = true;
-                        }
+                        currentWord.sentences[i] = parsed;
+                        setDisplayedWordToCurrentWord();
+                        break;
                     }
                 }
             });
@@ -431,22 +491,22 @@
                     <div class="line3 line"> </div>
                     <div class="line4 line "> </div>
 
-                    <div class="word obfuscation-container" onclick="reveal('word')" >
+                    <div class="word obfuscation-container" onclick="obfuscateOrEdit(event, 'word')" >
                         <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
                         <div id='word' class="card big-font">
                         </div>
                     </div>
-                    <div class="reading obfuscation-container" onclick="reveal('reading')">
+                    <div class="reading obfuscation-container" onclick="obfuscateOrEdit(event, 'reading')">
                         <div class="label">Prononciation</div>
                         <div id="reading" class="card big-font"></div>
                     </div>
 
-                    <div class="meaning obfuscation-container" onclick="reveal('meaning')">
+                    <div class="meaning obfuscation-container" onclick="obfuscateOrEdit(event, 'meaning')">
                         <div class="label">Sens Principal</div>
                         <div id="meaning" class="card"></div>
                     </div>
 
-                    <div class="alternative obfuscation-container" onclick="reveal('alternative')">
+                    <div class="alternative obfuscation-container" onclick="obfuscateOrEdit(event, 'alternative')">
                         <div class="label">Autres Sens</div>
                         <div id="alternative" class="card">
                         </div>
