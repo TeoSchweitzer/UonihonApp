@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
+    <title>Uonihon</title>
     <link rel="icon" href="asset/icon/favicon.ico">
     <link rel="icon" sizes="16x16" href="asset/icon/favicon-16x16.png">
     <link rel="icon" sizes="32x32" href="asset/icon/favicon-32x32.png">
@@ -16,7 +16,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
     <link rel="stylesheet/less" type="text/css" href="styles.less" />
-    <title>Uonihon</title>
     <script src="https://cdn.jsdelivr.net/npm/less"></script>
 </head>
 
@@ -40,7 +39,7 @@
             }).then((response) => response.text()).then((response) => {
                 words = response;
                 filtered = words;
-            });
+            }).catch(error => alert(error));
         }
 
         document.addEventListener('visibilitychange', (event) => {
@@ -50,6 +49,9 @@
         });
 
         function saveCurrentWord() {
+            if (currentWord.id == -1) {
+                return
+            }
             if (currentFocus != undefined) {
                 currentWord.familiarity = (parseInt(currentWord.familiarity)+1) + ""
                 currentWord.testAmount = (parseInt(currentWord.testAmount)+1) + ""
@@ -58,7 +60,7 @@
                 method: "POST", keepalive: true, 
                 headers: { "Content-type": "application/json; charset=UTF-8" },
                 body: JSON.stringify(currentWord)
-            });
+            }).catch(error => alert(error));
         }
 
         async function getWord(wordId, focus) {
@@ -89,13 +91,20 @@
                     } else if (currentFocus=="reading") {
                         toHide = ['meaning','reading','alternative','explainer']
                     }
-                    toHide.forEach(id => document.getElementById(id).classList.add("obfuscated"))
+                    toHide.forEach(id => {
+                        if (json[id] != "") {
+                            document.getElementById(id).classList.add("obfuscated")
+                        }
+                    })
                     obf = v => ((v=='jp' && currentFocus=="writing") || (v=='tr' && currentFocus=="reading")) ? 'obfuscated' : ''
 
                     currentWord = {...json}
 
+
                     setDisplayedWordToCurrentWord()
-                });
+                    switchWordListVisibility(false)
+                })
+                .catch(error => alert(error));
         }
 
         function explainerPrompt(word) {
@@ -103,9 +112,12 @@
                 systemPrompt :
                     "You are an assistant AI specialized in helping french students in their learning of the japanese language.",
                 userPrompt :
-                    "Écris une petite explication qui contextualise l'usage du mot japonais \""+word+"\". "
-                        +"La petite explication doit rester courte, deux ou trois phrases, et ne doit pas donner d'exemple d'usage. "
-                        +"Elle doit simplement donner les contextes d'utilisation les plus courants.",
+                    "Écrivez une petite explication qui contextualise l'usage du mot japonais \""+word+"\". "
+                        +"La petite explication doit rester courte, deux ou trois phrases, et ne doit ni donner d'exemple d'usage, ni donner de définition. "
+                        +"Elle doit simplement donner les contextes d'utilisation les plus courants. "
+                        +"Si les contextes d'utilisation de "+word+" sont très évident (par exemple si ce sont exactement les même qu'en français), "
+                        +"donnez simplement le sens du mot en une courte phrase, "
+                        +"en précisant que le mot s'utilise de la même façon qu'en français.",
             }
         }
 
@@ -130,7 +142,8 @@
                 systemPrompt : 
                     "You are a japanese to french translation system that has a singular function : taking a japanese word or idiom as input, "
                         +"and returning the best translations possible for it, in french. You don't give explanations or prembules, "
-                        +"only the translations, separated by commas (\",\"), with the best and most common translation first.",
+                        +"only the translations, separated by commas (\",\"), with the best and most common translation first. "
+                        +"Do NOT give suppmimentary translations if they are redundant: if a word has one perfect and direct translation, only return that.",
                 userPrompt :
                     word
             }
@@ -140,7 +153,8 @@
             return {
                 systemPrompt: 
                     "あなたはふりがな生成器で、どんな日本語の単語でも入力として受け取り、その仮名形を返すことができます。"
-                        +"返答では、文章や説明、前置きを書かず、リクエストされた単語の仮名形のみを直接提供し、それ以外は何も書かないでください。",
+                        +"返答では、文章や説明、前置きを書かず、リクエストされた単語の仮名形のみを直接提供し、それ以外は何も書かないでください。"
+                        +"要求された単語に漢字が含まれていない場合、その単語は必ず元のまま返されなければならない。",
                 userPrompt: 
                     word
             }
@@ -152,7 +166,7 @@
         let SMALL_MODEL = "Meta-Llama-3.1-8B-Instruct"
         let listOfRequestsToLlm = []
 
-        function getTextFromLlm(prompt, model, doWithResult) {
+        function getTextFromLlm(prompt, model, strict, doWithResult) {
             listOfRequestsToLlm.push(() => {
                 fetch("https://api.arliai.com/v1/chat/completions", {
                     method: "POST",
@@ -168,11 +182,9 @@
                             { "role": "user",
                               "content": prompt.userPrompt}
                         ],
-                        "repetition_penalty": 1.1,
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                        "top_k": 40,
-                        "max_tokens": 1024
+                        "temperature": strict ? 0.1 : 0.7,
+                        "top_k": strict ? 3 : 40,
+                        "max_tokens": 150
                     })
                 })
                   .then(response => response.json())
@@ -190,15 +202,19 @@
             }
         }
 
+        let dateFormat = new Intl.DateTimeFormat('fr-FR', {timeStyle:"short", dateStyle:"short"})
+
         function setDisplayedWordToCurrentWord() {
             document.getElementById('word').innerText = currentWord.word ?? "";
             document.getElementById('reading').innerText = currentWord.reading ?? "";
             document.getElementById('meaning').innerText = currentWord.meaning ?? "";
             document.getElementById('alternative').innerText = currentWord.alternative ?? "";
             document.getElementById('explainer').innerText = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
-            document.getElementById('familiarity-choice-value').innerText = currentWord.familiarity ?? "";
+            document.getElementById('familiarity').innerText = currentWord.familiarity ?? "";
             document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
-            document.getElementById('date-last-seen-value').innerText = currentWord.lastTestDate ?? "";
+            document.getElementById('date-last-seen-value').innerText = 
+                ((currentWord.lastTestDate??"") == "") ? "" : dateFormat.format(Date.parse(currentWord.lastTestDate));
+
             switchNoKanjiMode(currentWord.useReading)
             switchUnlockedMode(currentWord.unlocked)
 
@@ -221,15 +237,15 @@
 
 
             if ((currentWord.reading??"") == "") {
-                getTextFromLlm(readingPrompt(currentWord.word), MEDIUM_MODEL, (result) => {
+                getTextFromLlm(readingPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
                     currentWord.reading = result;
                     document.getElementById('reading').innerText = result;
                 })
             }
             if ((currentWord.meaning??"") == "" && (currentWord.alternative??"") == "") {
-                getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, async (result) => {
-                    while (!result || result == "" || (result.split(',')?.length??0) == 0 || result.split(',')[0] == "") {
-                        await getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, (next) => { result = next });
+                getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, async (result) => {
+                    while (!result || result == "" || result.includes(';') || (result.split(',')?.length??0) == 0 || result.split(',')[0] == "") {
+                        await getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, (next) => { result = next });
                     }
                     splitted = result.split(',')
                     currentWord.meaning = splitted.shift();
@@ -239,12 +255,15 @@
                 });
             }
             if ((currentWord.explainer??"") == "") {
-                getTextFromLlm(explainerPrompt(currentWord.word), MEDIUM_MODEL, (result) => {
+                getTextFromLlm(explainerPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
                     currentWord.explainer = result;
                     document.getElementById('explainer').innerText = result;
                 });
             }
             if (((currentWord.sentences??[])?.length??0) == 0) {
+                currentWord.sentences = [{japanese:"",translation:""}]
+            }
+            if (currentWord.sentences.some(s => s.japanese == "" && s.translation == "")) {
                 recursiveSentenceMaker()
             }
         }
@@ -274,7 +293,7 @@
             // Focus the div
             div.focus();
 
-            // Place the cursor at the end of the text
+            // Select content
             const range = document.createRange();
             range.selectNodeContents(div);
             const selection = window.getSelection();
@@ -285,14 +304,27 @@
             div.addEventListener('blur', function handleEndOfEditing() {
                 div.removeEventListener('blur', handleEndOfEditing);
                 div.contentEditable = false;
-                if (div.textContent == "" && (divId.includes("sentence") || divId.includes("translation"))) {
-                    currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
-                    setDisplayedWordToCurrentWord()
+                if (divId.includes("sentence") || divId.includes("translation")) {
+                    if (div.textContent == "") {
+                        currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
+                    } else {
+                        currentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = div.textContent
+                    }
                 }
-                else if (div.textContent == "") {
-                    if (divId!="word") currentWord[divId] = "";
-                    setDisplayedWordToCurrentWord();
+                else if (divId == "familiarity") {
+                    if (div.textContent != "" && /^\d+$/.test(div.textContent)) {
+                        currentWord[divId] = div.textContent;
+                    }
                 }
+                else if (divId == "word") {
+                    if (div.textContent != "") {
+                        currentWord[divId] = div.textContent;
+                    }
+                }
+                else {
+                    currentWord[divId] = div.textContent
+                }
+                setDisplayedWordToCurrentWord();
             });
         }
 
@@ -307,10 +339,12 @@
                 }
             })
                 .then((response) => response.json())
-                .then((json) => console.log(json));
+                .then((json) => console.log(json))
+                .catch(error => alert(error));
         }
 
         function setVisibleMainTab(tab) {
+            alert("Pas implémenté !")
             var kanaTabNode = document.querySelector('.kanaTab');
             var kanjiTabNode = document.querySelector('.kanjiTab');
             var vocabularyTabNode = document.querySelector('.vocabularyTab');
@@ -336,14 +370,17 @@
         }
 
         async function switchWordListVisibility(goToWordList) {
-            var listNode = document.querySelector('.words-list-activity');
-            var testNode = document.querySelector('.word-tester-activity');
-            if (goToWordList || listNode.style.display == 'none') {
+            let listNode = document.querySelector('.words-list-activity');
+            let testNode = document.querySelector('.word-tester-activity');
+            let searchBarNode = document.getElementById('search-bar');
+            if ((goToWordList??true) && listNode.style.display == 'none') {
                 listNode.style.display = 'block'
                 testNode.style.display = 'none';
+                searchBarNode.addEventListener('input', filterWords);
                 await getAllWords()
                 setWordList(words)
             } else {
+                searchBarNode.removeEventListener('input', filterWords)
                 listNode.style.display = 'none';
                 testNode.style.display = 'grid';
             }
@@ -356,9 +393,9 @@
                 if (wordLine == "") return
                 let splittedLine = wordLine.split('|')
                 let htmlSentence = `
-                <tr id="wordListIdx${i + 1}" onclick="(async () => {await getWord('${splittedLine[0].trim()}'); switchWordListVisibility(); })()">
+                <tr id="wordListIdx${i + 1}" onclick="(async () => {await getWord('${splittedLine[0].trim()}'); })()">
                     <td>${splittedLine[1]}</td>
-                    <td>${splittedLine[2]}</td>
+                    <td>${splittedLine[2]}sighzeoiugzhoihgzoighzeighzeighzoiehgsighzeoiugzhoihgzoighzeighzeighzoiehgsighzeoiugzhoihgzoighzeighzeighzoiehg</td>
                     <td>${splittedLine[3]}</td>
                     <td>${splittedLine[4]}</td>
                 </tr>`
@@ -368,39 +405,10 @@
 
         function startSearchingInWordList() {
             switchWordListVisibility(true)
-            switchSearchBarVisibility(true, true)
-        }
-
-        function switchSearchBarVisibility(visible, focusOnIt) {
-            var searchBarNode = document.getElementById('search-bar');
-            let searchBarInputNode = document.getElementById('search-bar-input')
-            if (visible || searchBarNode.style.display == 'none') {
-                searchBarNode.style.display = 'block';
-                searchBarNode.addEventListener('input', filterWords);
-            } else {
-                searchBarNode.removeEventListener('input', filterWords)
-                filtered = words
-                searchBarInputNode.value = ""
-                searchBarNode.style.display = 'none';
-            }
-            if (focusOnIt) {
-                switchTabsVisibility(false)
-                searchBarInputNode.focus();
-            } else {
-                switchTabsVisibility(true)
-            }
-        }
-
-        function switchTabsVisibility(visible) {
-            let tabs = document.getElementsByClassName('tab')
-            shouldBeVisible = (visible || tabs[0].style.display == 'none')
-            for (let i = 0; i < tabs.length; i++) {
-                if (shouldBeVisible) {
-                    tabs[i].style = {}
-                } else {
-                    tabs[i].style.display = 'none'
-                }
-            }
+            filtered = words
+            let searchBarInputNode = document.getElementById('search-bar-input');
+            searchBarInputNode.value = ""
+            searchBarInputNode.focus();
         }
 
         function filterWords(event) {
@@ -455,7 +463,7 @@
         }
 
         function recursiveSentenceMaker() {
-            getTextFromLlm(sentencePrompt(currentWord.word), MEDIUM_MODEL, (result) => {
+            getTextFromLlm(sentencePrompt(currentWord.word), MEDIUM_MODEL, false, (result) => {
                 if ((currentWord?.sentences??[]).length == 0) {
                     currentWord.sentences = [];
                 }
@@ -476,6 +484,37 @@
                     }
                 }
             });
+        }
+
+        function addWord() {
+            let wordToAdd = document.getElementById('search-bar-input').value
+            currentWord = {
+                id: -1,
+                word: wordToAdd,
+                reading: "",
+                meaning: "",
+                alternative: "",
+                explainer: "",
+                unlocked: "1",
+                useReading: "0",
+                familiarity: "0",
+                testAmount: "0",
+                lastTestDate: new Date().toISOString(),
+                sentences: [{japanese:"",translation:""}],
+            }
+            setDisplayedWordToCurrentWord();
+            switchWordListVisibility(false);
+        }
+
+        function switchTabsVisibility(visible) {
+            let tabs = document.getElementsByClassName('tab')
+            for (let i = 0; i < tabs.length; i++) {
+                if (visible) {
+                    tabs[i].style = {}
+                } else {
+                    tabs[i].style.display = 'none'
+                }
+            }
         }
 
     </script>
@@ -530,9 +569,9 @@
                         <span class="checkbox-label">Mode Sans-Kanji</span>
                     </div>
 
-                    <div id="familiarity familiarity-choice" class="familiarity card even-padding">
+                    <div id="familiarity-choice" class="familiarityDisplay card even-padding" onclick="obfuscateOrEdit(event, 'familiarity')">
                         Familiarité :&nbsp
-                        <span id="familiarity-choice-value"></span>
+                        <span id="familiarity"></span>
                     </div>
 
                     <div class="moreInfo sub-footer">
@@ -564,16 +603,19 @@
 
                 <div class="words-list-activity" style="display: none;">
                     
-                    <div id="search-bar" class="wordInput no-padding primary-background" style="display: none;">
-                        <input id="search-bar-input" type="search" class="word-search-input" onfocusout="switchSearchBarVisibility(false)"></input>
+                    <div id="search-bar" class="wordInput no-padding primary-background">
+                        <input id="search-bar-input" type="search" class="word-search-input" onfocusin="switchTabsVisibility(false)" onfocusout="switchTabsVisibility(true)"></input>
+                        <div id="add-word-button" class="no-padding primary-background add-word-button" onclick="addWord()">
+                            <img class="icon" src="asset/cross.png" alt="cross-icon"> Ajouter
+                        </div>
                     </div>
 
                     <table class="elegant-table"><thead>
                         <tr>
                             <th>Mot</th>
-                            <th>Prononciation</th>
+                            <th>Kana</th>
                             <th>Sens</th>
-                            <th>Autres Sens</th>
+                            <th>Autres</th>
                         </tr></thead>
                         <tbody id="word-list-table">
                         </tbody>
@@ -595,24 +637,13 @@
 
         <div class="uonihon-main-space bottom-main-space">
 
-            <div class="tab list inline" onclick="switchWordListVisibility()">
-                <img class="icon" src="asset/list.png" alt="Vocabulary icon">
-                <div class="tab-text">Liste</div>
+            <div class="tab reading inline" onclick="getWord(null, 'reading')">
+                <img class="icon" src="asset/arrow-down.png" alt="Vocabulary icon">
+                <div class="tab-text">Lire</div>
             </div>
 
             <div class="tab search inline" onclick="startSearchingInWordList()">
                 <img class="icon" src="asset/search.png" alt="Kanji icon">
-                <div class="tab-text">Chercher</div>
-            </div>
-
-            <div class="tab add inline" onclick="setVisibleTab('produceTab')">
-                <img class="icon" src="asset/cross.png" alt="Vocabulary icon">
-                <div class="tab-text">Ajout</div>
-            </div>
-
-            <div class="tab reading inline" onclick="getWord(null, 'reading')">
-                <img class="icon" src="asset/arrow-down.png" alt="Vocabulary icon">
-                <div class="tab-text">Lire</div>
             </div>
 
             <div class="tab writing inline" onclick="getWord(null, 'writing')">

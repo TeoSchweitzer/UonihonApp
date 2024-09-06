@@ -57,7 +57,7 @@ def wordGet(id="chooseBest"):
     response['useReading'] = wordUsage["useReading"]
     response['familiarity'] = wordUsage["familiarity"]
     response['testAmount'] = wordUsage["testAmount"]
-    response['lastTestDate'] = datetime.datetime.fromisoformat(wordUsage["lastTestDate"]).strftime("%d/%m/%Y %Hh%M")
+    response['lastTestDate'] = wordUsage["lastTestDate"]
     response['sentences'] = sentencesArray
     json_response = json.dumps(response)
 

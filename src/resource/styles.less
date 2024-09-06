@@ -91,7 +91,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
             .sentences { grid-area: sentences;}
             .sentenceAdd { grid-area: sentenceAdd;}
             .noKanji { grid-area: noKanji;}
-            .familiarity { grid-area: familiarity;}
+            .familiarityDisplay { grid-area: familiarity;}
             .moreInfo { grid-area: moreInfo; font-size: 28px; font-style: italic; color: darken(@white, 20%);}
             .unlocked { grid-area: unlocked;}
             .delete { grid-area: delete; background-color: lighten(@caution, 18%);}
@@ -125,12 +125,9 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
       z-index: 2;
       display: grid;  
       grid-template-areas:
-        'list list list list                           search search     search search     add add add add'
-        'reading reading reading reading               reading reading   writing writing   writing writing writing writing'
-        'vocabulary vocabulary vocabulary vocabulary   kanji kanji       kanji kanji       kana kana kana kana'
-        'wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput wordInput';
+        'reading    reading    reading    reading    reading    reading   reading   search   writing   writing   writing   writing   writing   writing   writing'
+        'vocabulary vocabulary vocabulary vocabulary vocabulary kanji     kanji     kanji     kanji     kanji     kana      kana      kana      kana      kana';
 
-      .wordInput { grid-area: wordInput;}
       .list { grid-area: list;}
       .search { grid-area: search;}
       .add { grid-area: add;}
@@ -166,6 +163,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
 
 }
 
+.wordInput { display: flex;}
 
 .line {
   margin: 15px auto;
@@ -258,6 +256,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
     height: 40px;
     margin: 0;
   }
+
 }
 
 .checkbox-style {
@@ -268,17 +267,25 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
 }
 
 .word-search-input {
-    width: 98%;
     height: 70px;
     font-size: 45px;
     font-family: "EB Garamond";
     font-weight: 600;
     margin: 10px;
+    display: flex;
+    flex-grow: 1;
 }
 
 .no-padding {
   padding: 0 !important;
 }
+
+.add-word-button {
+  display: flex;
+  align-items: center;
+  margin-right: 40px;
+}
+
 
 
 
@@ -291,6 +298,8 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   font-size: 24px;
   text-wrap: nowrap;
   border: 1px solid @white;
+  overflow-x: auto;
+  display: block;
 
   th {
     background-color: @black;
@@ -300,6 +309,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
     padding: 12px;
     text-align: left;
     border-bottom: 2px solid @white;
+    width: 25vw;
   }
 
   td {
