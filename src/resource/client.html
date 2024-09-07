@@ -160,18 +160,29 @@
             }
         }
 
-
-        let ARLIAI_API_KEY = "5a106e75-87b5-4a10-805a-d927325cc77e"
         let MEDIUM_MODEL = "Mistral-Nemo-12B-Instruct-2407"
         let SMALL_MODEL = "Meta-Llama-3.1-8B-Instruct"
-        let listOfRequestsToLlm = []
+
+        let account1 = "keyholderforllmapi1@gmail.com"
+        let key1 = "2a4a6037-d7cd-4cfa-af34-4c2dc5b8f57b"
+        let account2 = "keyholderforllmapi2@gmail.com"
+        let key2 = "adc5b4bd-a6b1-456c-ab56-8e92cc68d913"
+        let account3 = "keyholderforllmapi3@gmail.com"
+        let key3 = "9235f1cd-0f1b-4758-84ae-b70a85b7591a"
+        let account4 = "keyholderforllmapi4@yahoo.com"
+        let key4 = "1c39afed-4ed9-4cd8-97fe-4f7e5a8e91cb"
+        let accountsPassword = "passwordforallaccountsthatholdanapikeyA1%"
+
+        let availableKeys = [key1, key2, key3, key4]
+        let waitingArea = []
 
         function getTextFromLlm(prompt, model, strict, doWithResult) {
-            listOfRequestsToLlm.push(() => {
+            if (availableKeys.length > 0) {
+                let pickedKey = availableKeys.shift()
                 fetch("https://api.arliai.com/v1/chat/completions", {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${ARLIAI_API_KEY}`,
+                        "Authorization": `Bearer ${pickedKey}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -191,20 +202,20 @@
                   .then(json => doWithResult(json.choices[0].message.content))
                   .catch(error => alert(error))
                   .finally(() => {
-                    listOfRequestsToLlm.shift()
-                    if (listOfRequestsToLlm.length > 0) {
-                        listOfRequestsToLlm[0]()
+                    availableKeys.push(pickedKey)
+                    if (waitingArea.length > 0) {
+                        let next = waitingArea.shift()
+                        getTextFromLlm(next.prompt, next.model, next.strict, next.doWithResult)
                     }
                   })
-            })
-            if (listOfRequestsToLlm.length == 1) {
-                listOfRequestsToLlm[0]()
+            } else {
+                waitingArea.push({prompt:prompt, model:model, strict:strict, doWithResult:doWithResult})
             }
         }
 
         let dateFormat = new Intl.DateTimeFormat('fr-FR', {timeStyle:"short", dateStyle:"short"})
 
-        function setDisplayedWordToCurrentWord() {
+        function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
             document.getElementById('word').innerText = currentWord.word ?? "";
             document.getElementById('reading').innerText = currentWord.reading ?? "";
             document.getElementById('meaning').innerText = currentWord.meaning ?? "";
@@ -217,6 +228,15 @@
 
             switchNoKanjiMode(currentWord.useReading)
             switchUnlockedMode(currentWord.unlocked)
+
+            if (currentFocus==undefined) {
+                document.getElementById('familiarity-choice').style.backgroundColor = 'transparent'
+                document.getElementById('familiarity-hint').style.display = 'block'
+            }
+            else {
+                document.getElementById('familiarity-choice').style = undefined
+                document.getElementById('familiarity-hint').style.display = 'none'
+            }
 
             let sentencesNode = document.getElementById('sentences-container');
             sentencesNode.replaceChildren();
@@ -235,14 +255,13 @@
                 sentencesNode.insertAdjacentHTML('beforeend', htmlSentence)
             });
 
-
-            if ((currentWord.reading??"") == "") {
+            if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="reading") && (currentWord.reading??"") == "") {
                 getTextFromLlm(readingPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
                     currentWord.reading = result;
                     document.getElementById('reading').innerText = result;
                 })
             }
-            if ((currentWord.meaning??"") == "" && (currentWord.alternative??"") == "") {
+            if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="meaning" || useLlmOnlyOn=="alternative") && (currentWord.meaning??"") == "" && (currentWord.alternative??"") == "") {
                 getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, async (result) => {
                     while (!result || result == "" || result.includes(';') || (result.split(',')?.length??0) == 0 || result.split(',')[0] == "") {
                         await getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, (next) => { result = next });
@@ -254,7 +273,7 @@
                     document.getElementById('alternative').innerText = currentWord.alternative;
                 });
             }
-            if ((currentWord.explainer??"") == "") {
+            if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="explainer") && (currentWord.explainer??"") == "") {
                 getTextFromLlm(explainerPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
                     currentWord.explainer = result;
                     document.getElementById('explainer').innerText = result;
@@ -263,7 +282,7 @@
             if (((currentWord.sentences??[])?.length??0) == 0) {
                 currentWord.sentences = [{japanese:"",translation:""}]
             }
-            if (currentWord.sentences.some(s => s.japanese == "" && s.translation == "")) {
+            if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="sentences") && currentWord.sentences.some(s => s.japanese == "" && s.translation == "")) {
                 recursiveSentenceMaker()
             }
         }
@@ -284,6 +303,11 @@
         }
 
         function edit(divId) {
+
+            if (divId=="familiarity" && currentFocus == undefined) {
+                return
+            }
+
             const div = document.getElementById(divId);
             if (!div) return; // Exit if div not found
 
@@ -324,7 +348,7 @@
                 else {
                     currentWord[divId] = div.textContent
                 }
-                setDisplayedWordToCurrentWord();
+                setDisplayedWordToCurrentWord(divId);
             });
         }
 
@@ -458,8 +482,7 @@
                 currentWord.sentences = [];
             }
             currentWord.sentences.push({japanese:"", translation:""});
-            setDisplayedWordToCurrentWord();
-            recursiveSentenceMaker();
+            setDisplayedWordToCurrentWord('sentences');
         }
 
         function recursiveSentenceMaker() {
@@ -479,7 +502,7 @@
                 for (let i = 0; i < currentWord.sentences.length; i++) {
                     if (currentWord.sentences[i].japanese == "" && currentWord.sentences[i].translation == "") {
                         currentWord.sentences[i] = parsed;
-                        setDisplayedWordToCurrentWord();
+                        setDisplayedWordToCurrentWord('sentences');
                         break;
                     }
                 }
@@ -531,7 +554,7 @@
                     <div class="line4 line "> </div>
 
                     <div class="word obfuscation-container" onclick="obfuscateOrEdit(event, 'word')" >
-                        <div class="label">Mot <span id="no-kanji-label">(Sans Kanji)</span></div>
+                        <div class="label">Mot <span id="no-kanji-label">(Prononciation)</span></div>
                         <div id='word' class="card big-font">
                         </div>
                     </div>
@@ -566,12 +589,13 @@
 
                     <div id="no-kanji-choice" class="noKanji card even-padding" onclick="switchNoKanjiMode()">
                         <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style" onclick="switchNoKanjiMode()">
-                        <span class="checkbox-label">Mode Sans-Kanji</span>
+                        <span class="checkbox-label">Mode Prononciation</span>
                     </div>
 
                     <div id="familiarity-choice" class="familiarityDisplay card even-padding" onclick="obfuscateOrEdit(event, 'familiarity')">
                         Familiarité :&nbsp
-                        <span id="familiarity"></span>
+                        <span id="familiarity"></span><br/>
+                        <div id="familiarity-hint" class="familiarity-hint">(moyenne entre Lire et Dire)</div>
                     </div>
 
                     <div class="moreInfo sub-footer">

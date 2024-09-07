@@ -190,7 +190,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
 
 .card {
   text-align: center;
-  padding: 52px 12px 25px 12px;
+  padding: 46px 12px 25px 12px;
   background-color: @primary;
   min-height: 60px;
   border-radius: 10px;
@@ -198,6 +198,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  position: relative;
 
   &.align-start {
     text-align: start;
@@ -211,6 +212,11 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   }
   &.unbound-height {
     min-height: 0;
+  }
+  .familiarity-hint {
+    position: absolute; 
+    bottom: 8px; 
+    font-size: 20px;
   }
 }
 

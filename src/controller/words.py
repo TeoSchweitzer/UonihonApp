@@ -101,7 +101,7 @@ def getWordUsage(wordId,  usageList, focus):
             testAmount = word[6].strip()
             lastTestDate = word[8].strip()
         case _:
-            familiarity = str(int(word[3].strip()) + int(word[4].strip()))
+            familiarity = str(int((int(word[3].strip()) + int(word[4].strip())) / 2)) 
             testAmount = str(int(word[5].strip()) + int(word[6].strip()))
             lastTestDate = datetime.datetime.isoformat(max(datetime.datetime.fromisoformat(word[7].strip()), datetime.datetime.fromisoformat(word[8].strip())))
     return {
