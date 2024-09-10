@@ -141,10 +141,10 @@ function getAllWords() {
 }
 
 function saveCurrentWord() {
-    if (currentWord.id == -1) {
+    if (currentWord.id === -1) {
         return
     }
-    if (currentFocus != undefined) {
+    if (currentFocus !== undefined) {
         currentWord.familiarity = (parseInt(currentWord.familiarity)+1) + ""
         currentWord.testAmount = (parseInt(currentWord.testAmount)+1) + ""
     }
@@ -169,7 +169,22 @@ function explainerPrompt(word) {
     }
 }
 
-function sentencePrompt(word) {
+function sentencePrompt(word, sentences) {
+    let examples;
+    filtered = sentences.filter(s => s.japanese.includes(word))
+    if ((filtered??[]).length === 0) {
+        examples = "";
+    } else {
+        let onlyOne = "Voici un exemple de phrase en japonais utilisant le mot " + word + " accompagnée de sa traduction, en format JSON :\n";
+        let plural = "Voici un ensemble de phrases en japonais utilisant le mot " + word + " accompagnées de leurs traductions, en format JSON :\n";
+        examples = filtered.length > 1 ? plural : onlyOne
+        filtered.forEach(sentence => {
+            examples += `${JSON.stringify(sentence)}\n`;
+        })
+        examples += "La réponse doit respecter ce format JSON, mais proposer une phrase différente de ce qui a été montré en exemple, "
+            +"si possible illustrant un usage différent du mot " + word + ". La traduction doit être en français."
+            +"Ne pas fournir une liste d'objets JSON en réponse: un seul objet qui respecte le format est nécessaire.\n"
+    }
     return {
         systemPrompt :
             "You are an assistant AI specialized in japanese teaching and japanese to french translations "
@@ -177,11 +192,12 @@ function sentencePrompt(word) {
             +"The responses must be parsable JSON objects, so the answers can't contain preambules, explanations, "
             +"or anything other then the JSON object.",
         userPrompt :
-            "Écris une phrase en japonais qui illustre parfaitement l'usage typique du mot japonais \""+word+"\", "
+            "Écris une phrase en japonais qui illustre parfaitement un usage typique du mot japonais \""+word+"\", "
             +"ainsi que sa traduction en français. La phrase doit permettre de bien comprendre comment utiliser le mot \""+word+"\", "
             +"et la traduction française doit fidélement retranscrire le sens de la phrase. "
-            +"Le format de la réponse DOIT être un objet JSON qui suit le schéma : "
-            +"{ japanese: \"<phrase japonaise utilisant "+word+">\", translation: \"<traduction française>\" }",
+            +"Le format de la réponse DOIT être un objet JSON qui suit le schéma :\n"
+            +"{ japanese: \"<phrase japonaise utilisant "+word+">\", translation: \"<traduction française>\" }\n"
+            +examples
     }
 }
 
@@ -254,12 +270,12 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
     document.getElementById('familiarity').innerText = currentWord.familiarity ?? "";
     document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
     document.getElementById('date-last-seen-value').innerText =
-        ((currentWord.lastTestDate??"") == "") ? "" : dateFormat.format(Date.parse(currentWord.lastTestDate));
+        ((currentWord.lastTestDate??"") === "") ? "" : dateFormat.format(Date.parse(currentWord.lastTestDate));
 
     switchNoKanjiMode(currentWord.useReading)
     switchUnlockedMode(currentWord.unlocked)
 
-    if (currentFocus==undefined) {
+    if (currentFocus===undefined) {
         document.getElementById('familiarity-choice-button').style.backgroundColor = 'transparent'
         document.getElementById('familiarity-hint').style.display = 'block'
     }
@@ -270,18 +286,16 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
 
     let sentencesNode = document.getElementById('sentences-container');
     sentencesNode.replaceChildren();
-    let obf = v => ((v=='jp' && currentFocus=="writing") || (v=='tr' && currentFocus=="reading")) ? 'obfuscated' : '';
-
     (currentWord.sentences ?? [])?.forEach(function (sentence, i) {
         let htmlSentence = `
                     <div class="line"> </div>
                     <div id="sentence${i + 1}-obfuscation-card" class="obfuscation-container" style="margin: 12px 0" >
                     <div class="label">Phrase ${i + 1}</div>
-                    <div id="sentence${i + 1}" class="card ${obf('jp')} long">${sentence.japanese}</div>
+                    <div id="sentence${i + 1}" class="card long">${heightLightWordIn(currentWord.word, sentence.japanese)}</div>
                     </div>
                     <div id="translation${i + 1}-obfuscation-card" class="obfuscation-container" >
                     <div class="label">Traduction ${i + 1}</div>
-                    <div id="translation${i + 1}" class="card ${obf('tr')} long">${sentence.translation}</div>
+                    <div id="translation${i + 1}" class="card long">${sentence.translation}</div>
                     </div>
                 `
         sentencesNode.insertAdjacentHTML('beforeend', htmlSentence)
@@ -291,15 +305,15 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
 
     refreshObfuscation();
 
-    if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="reading") && (currentWord.reading??"") == "") {
+    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="reading") && (currentWord.reading??"") === "") {
         getTextFromLlm(readingPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
             currentWord.reading = result;
             document.getElementById('reading').innerText = result;
         })
     }
-    if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="meaning" || useLlmOnlyOn=="alternative") && (currentWord.meaning??"") == "" && (currentWord.alternative??"") == "") {
+    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="meaning" || useLlmOnlyOn==="alternative") && (currentWord.meaning??"") === "" && (currentWord.alternative??"") === "") {
         getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, async (result) => {
-            while (!result || result == "" || result.includes(';') || (result.split(',')?.length??0) == 0 || result.split(',')[0] == "") {
+            while (!result || result === "" || result.includes(';') || (result.split(',')?.length??0) === 0 || result.split(',')[0] === "") {
                 await getTextFromLlm(meaningPrompt(currentWord.word), MEDIUM_MODEL, true, (next) => { result = next });
             }
             let splitted = result.split(',')
@@ -309,18 +323,22 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
             document.getElementById('alternative').innerText = currentWord.alternative;
         });
     }
-    if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="explainer") && (currentWord.explainer??"") == "") {
+    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="explainer") && (currentWord.explainer??"") === "") {
         getTextFromLlm(explainerPrompt(currentWord.word), MEDIUM_MODEL, true, (result) => {
             currentWord.explainer = result;
             document.getElementById('explainer').innerText = result;
         });
     }
-    if (((currentWord.sentences??[])?.length??0) == 0) {
+    if (((currentWord.sentences??[])?.length??0) === 0) {
         currentWord.sentences = [{japanese:"",translation:""}]
     }
-    if ((useLlmOnlyOn == undefined || useLlmOnlyOn=="sentences") && currentWord.sentences.some(s => s.japanese == "" && s.translation == "")) {
+    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="sentences") && currentWord.sentences.some(s => s.japanese === "" && s.translation === "")) {
         recursiveSentenceMaker()
     }
+}
+
+function heightLightWordIn(word, sentence) {
+    return sentence.replaceAll(word, `<span class="highlight kanji">${word}</span>`)
 }
 
 function obfuscateOrEdit(event, id) {
@@ -340,7 +358,7 @@ function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfDoubleCl
 
 function edit(divId) {
 
-    if (divId=="familiarity" && currentFocus == undefined) {
+    if (divId==="familiarity" && currentFocus === undefined) {
         return
     }
 
@@ -365,19 +383,19 @@ function edit(divId) {
         div.removeEventListener('blur', handleEndOfEditing);
         div.contentEditable = false;
         if (divId.includes("sentence") || divId.includes("translation")) {
-            if (div.textContent == "") {
+            if (div.textContent === "") {
                 currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
             } else {
                 currentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = div.textContent
             }
         }
-        else if (divId == "familiarity") {
-            if (div.textContent != "" && /^\d+$/.test(div.textContent)) {
+        else if (divId === "familiarity") {
+            if (div.textContent !== "" && /^\d+$/.test(div.textContent)) {
                 currentWord[divId] = div.textContent;
             }
         }
-        else if (divId == "word") {
-            if (div.textContent != "") {
+        else if (divId === "word") {
+            if (div.textContent !== "") {
                 currentWord[divId] = div.textContent;
             }
         }
@@ -433,7 +451,7 @@ async function switchWordListVisibility(goToWordList) {
     let listNode = document.querySelector('.words-list-activity');
     let testNode = document.querySelector('.word-tester-activity');
     let searchBarNode = document.getElementById('search-bar');
-    if ((goToWordList??true) && listNode.style.display == 'none') {
+    if ((goToWordList??true) && listNode.style.display === 'none') {
         listNode.style.display = 'block'
         testNode.style.display = 'none';
         searchBarNode.addEventListener('input', filterWords);
@@ -450,7 +468,7 @@ function setWordList(wordList) {
     let listTableNode = document.querySelector('#word-list-table');
     listTableNode.replaceChildren();
     wordList.split('\n').forEach(function (wordLine, i) {
-        if (wordLine == "") return
+        if (wordLine === "") return
         let splittedLine = wordLine.split('|')
         let htmlSentence = `
                 <tr id="wordListIdx${i + 1}">
@@ -488,20 +506,22 @@ function switchNoKanjiMode(value) {
 
     const isNoKanji = currentWord.useReading !== "0"
     document.getElementById("no-kanji-checkbox").checked = isNoKanji
-    document.getElementById('word').innerText = isNoKanji ? currentWord.reading : currentWord.word
+    let wordNode = document.getElementById('word')
+    wordNode.innerText = isNoKanji ? currentWord.reading : currentWord.word
+    wordNode.classList.remove("kanji", "kana")
+    wordNode.classList.add(isNoKanji ? "kana" : "kanji")
     document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
 }
 
 function switchUnlockedMode(value) {
-    currentWord.unlocked = value??(currentWord.unlocked=="0" ? "1" : "0")
-    const unlocked = currentWord.unlocked == "0" ? false : true
-    document.getElementById("unlocked-checkbox").checked = unlocked
+    currentWord.unlocked = value??(currentWord.unlocked==="0" ? "1" : "0")
+    document.getElementById("unlocked-checkbox").checked = currentWord.unlocked !== "0"
 }
 
 function showDeletionConfirmation() {
     let element1 = document.getElementById("cancel-deletion-button")
     let element2 = document.getElementById("confirm-deletion-button")
-    if (element1.style.visibility == "visible") {
+    if (element1.style.visibility === "visible") {
         element1.style.visibility = "collapse"
         element2.style.visibility = "collapse"
     } else {
@@ -511,16 +531,16 @@ function showDeletionConfirmation() {
 }
 
 function addNewSentence() {
-    if ((currentWord?.sentences??[]).length == 0) {
+    if ((currentWord?.sentences??[]).length === 0) {
         currentWord.sentences = [];
     }
-    currentWord.sentences.push({japanese:"", translation:""});
+    currentWord.sentences.push({id: undefined, japanese:"", translation:""});
     setDisplayedWordToCurrentWord('sentences');
 }
 
 function recursiveSentenceMaker() {
-    getTextFromLlm(sentencePrompt(currentWord.word), MEDIUM_MODEL, false, (result) => {
-        if ((currentWord?.sentences??[]).length == 0) {
+    getTextFromLlm(sentencePrompt(currentWord.word, currentWord.sentences), MEDIUM_MODEL, false, (result) => {
+        if ((currentWord?.sentences??[]).length === 0) {
             currentWord.sentences = [];
         }
         let parsed = undefined;
@@ -533,7 +553,7 @@ function recursiveSentenceMaker() {
             return recursiveSentenceMaker();
         }
         for (let i = 0; i < currentWord.sentences.length; i++) {
-            if (currentWord.sentences[i].japanese == "" && currentWord.sentences[i].translation == "") {
+            if (currentWord.sentences[i].japanese === "" && currentWord.sentences[i].translation === "") {
                 currentWord.sentences[i] = parsed;
                 setDisplayedWordToCurrentWord('sentences');
                 break;
@@ -558,7 +578,7 @@ async function addWord() {
         familiarity: "0",
         testAmount: "0",
         lastTestDate: new Date().toISOString(),
-        sentences: [{japanese:"",translation:""}],
+        sentences: [{id: undefined, japanese:"",translation:""}],
     }
     setDisplayedWordToCurrentWord();
     switchWordListVisibility(false);

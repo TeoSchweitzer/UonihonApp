@@ -30,19 +30,18 @@ app.add_hook('after_request', apply_cors)
 
 @route('/', method='GET')
 def get_home():
-    theResource = None
     with open(util.resource('client.html'), 'rb') as theFile:
-        theResource = theFile.read()
-    return theResource
+        the_resource = theFile.read()
+    return the_resource
 
 
 @route('/<resource:path>', method='GET')
 def get_asset(resource):
     with open(util.resource(resource), 'rb') as theFile:
-        theResource = theFile.read()
+        the_resource = theFile.read()
     if resource.endswith(".js"):
         response.headers["Content-Type"] = "text/javascript"
-    return theResource
+    return the_resource
 
 
 run(app=app, host=('192.168.1.86' if os.name == 'nt' else 'localhost'), port=8080, debug=True)
