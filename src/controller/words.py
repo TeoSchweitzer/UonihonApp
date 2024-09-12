@@ -14,51 +14,49 @@ def word_get_next():
     return word_get()
 
 
-@route('/word/<id>', method=['GET'])
-def word_get(wordId="chooseBest"):
+@route('/word/<word_id>', method=['GET'])
+def word_get(word_id="chooseBest"):
     focus = request.query.focus or 'no-focus'
 
     with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
-        wordsList = wordsFile.read().splitlines()
+        words_list = wordsFile.read().splitlines()
+    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
+        dictionary_list = dictionaryFile.read().splitlines()
     with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
-        sentencesList = sentencesFile.read().splitlines()
+        sentences_list = sentencesFile.read().splitlines()
     with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
-        usageList = usageFile.read().splitlines()
+        usage_list = usageFile.read().splitlines()
 
     current_time = datetime.datetime.now()
 
-    if wordId == "chooseBest":
-        chosenWordId = choose_word(usageList, current_time, focus)
+    if word_id == "chooseBest":
+        chosen_word_id = choose_word(usage_list, current_time, focus)
     else:
-        chosenWordId = wordId.strip()
-    chosenWord = next(filter(lambda v: v[0].strip() == chosenWordId, map(lambda w: w.split("|"), wordsList)))
+        chosen_word_id = word_id.strip()
+    chosen_word = next(filter(lambda v: v[0].strip() == chosen_word_id, map(lambda w: w.split("|"), words_list + dictionary_list)))
 
-    wordUsage = get_word_usage(chosenWordId, usageList, focus)
+    word_usage = get_word_usage(chosen_word_id, usage_list, focus)
 
-    chosenSentences = [sentence for sentence in sentencesList if (chosenWord[1].strip() in sentence.split("|")[1])]
+    chosen_sentences = [sentence for sentence in sentences_list if (chosen_word[1].strip() in sentence.split("|")[1])]
 
-    sentencesArray = []
-    for sentence in chosenSentences:
-        sentenceObject = {}
+    sentences_array = []
+    for sentence in chosen_sentences:
+        sentence_object = {}
         splitted = sentence.split("|")
-        sentenceObject['id'] = splitted[0].strip()
-        sentenceObject['japanese'] = splitted[1].strip()
-        sentenceObject['translation'] = splitted[2].strip()
-        sentencesArray.append(sentenceObject.copy())
+        sentence_object['id'] = splitted[0].strip()
+        sentence_object['japanese'] = splitted[1].strip()
+        sentence_object['translation'] = splitted[2].strip()
+        sentences_array.append(sentence_object.copy())
 
-    result = {'id': chosenWord[0].strip(),
-              'word': chosenWord[1].strip(),
-              'reading': chosenWord[2].strip(),
-              'meaning': chosenWord[3].strip(),
-              'alternative': chosenWord[4].strip(),
-              'explainer': chosenWord[5].strip(),
-              'unlocked': wordUsage["unlocked"],
-              'useReading': wordUsage["useReading"],
-              'familiarity': wordUsage["familiarity"],
-              'testAmount': wordUsage["testAmount"],
-              'lastTestDate': wordUsage["lastTestDate"],
-              'sentences': sentencesArray
+    result = {'id': chosen_word[0].strip(),
+              'word': chosen_word[1].strip(),
+              'reading': chosen_word[2].strip(),
+              'meaning': chosen_word[3].strip(),
+              'alternative': chosen_word[4].strip(),
+              'explainer': chosen_word[5].strip(),
+              'sentences': sentences_array
               }
+    result = result | word_usage
     json_response = json.dumps(result)
 
     return json_response
@@ -76,64 +74,70 @@ def save_word():
 @route('/word/words/all', method=['GET'])
 def get_all_words():
     with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
-        wordsList = wordsFile.read().splitlines()
-    return '\n'.join(map(lambda w: '|'.join(w.split('|')[:-1]), wordsList))
+        words_list = wordsFile.read().splitlines()
+    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
+        dictionary_list = dictionaryFile.read().splitlines()
+    full_list = words_list + dictionary_list
+    full_list = [('|'.join(word.split('|')[:-1])) for word in full_list]
+    return '\n'.join(full_list)
 
 
 @route('/word/sentences/all', method=['GET'])
 def get_all_sentences():
     with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
-        sentencesList = sentencesFile.read()
-    return sentencesList
+        sentences_list = sentencesFile.read()
+    return sentences_list
 
 
 @route('/word/usage/all', method=['GET'])
 def get_all_usage():
     with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
-        usageList = usageFile.read()
-    return usageList
+        usage_list = usageFile.read()
+    return usage_list
 
 
-def get_word_usage(wordId, usageList, focus):
-    word = next(filter(lambda v: v.split('|')[0].strip() == wordId, usageList)).split('|')
+def get_word_usage(word_id, usage_list, focus):
+    word = next(filter(lambda v: v.split('|')[0].strip() == word_id, usage_list), "").split('|')
+    if len(word) < 2:
+        return {}
     # id|unlocked|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
     match focus:
         case "reading":
             familiarity = word[3].strip()
-            testAmount = word[5].strip()
-            lastTestDate = word[7].strip()
+            test_amount = word[5].strip()
+            last_test_date = word[7].strip()
         case "writing":
             familiarity = word[4].strip()
-            testAmount = word[6].strip()
-            lastTestDate = word[8].strip()
+            test_amount = word[6].strip()
+            last_test_date = word[8].strip()
         case _:
             familiarity = str(int((int(word[3].strip()) + int(word[4].strip())) / 2))
-            testAmount = str(int(word[5].strip()) + int(word[6].strip()))
-            lastTestDate = datetime.datetime.isoformat(
+            test_amount = str(int(word[5].strip()) + int(word[6].strip()))
+            last_test_date = datetime.datetime.isoformat(
                 max(datetime.datetime.fromisoformat(word[7].strip()), datetime.datetime.fromisoformat(word[8].strip())))
     return {
         "unlocked": word[1].strip(),
         "useReading": word[2].strip(),
         "familiarity": familiarity,
-        "testAmount": testAmount,
-        "lastTestDate": lastTestDate
+        "testAmount": test_amount,
+        "lastTestDate": last_test_date
     }
 
 
-def choose_word(usageList, current_time, focus="no-focus"):
-    usageArray = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), usageList))
+def choose_word(usage_list, current_time, focus="no-focus"):
+    usage_array = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), usage_list))
 
     if focus == "no-focus":
-        onlyLocked = list(filter(lambda v: v[1] != "1", usageArray))
-        return random.choice(onlyLocked if len(onlyLocked) > 0 else usageArray)[0]
+        only_locked = list(filter(lambda v: v[1] != "1", usage_array))
+        return random.choice(only_locked if len(only_locked) > 0 else usage_array)[0]
 
-    removedLocked = list(filter(lambda v: v[1] == "1", usageArray))
+    removed_locked = list(filter(lambda v: v[1] == "1", usage_array))
 
-    if len(removedLocked) == 0:
-        return random.choice(list(usageArray))[0]
+    if len(removed_locked) == 0:
+        return random.choice(list(usage_array))[0]
 
     r = (focus == 'reading')
-    simplified_list = map(lambda v: [v[0], v[3 if r else 4], v[5 if r else 6], v[7 if r else 8]], removedLocked)
+    simplified_list = map(lambda v: [v[0], v[3 if r else 4], v[5 if r else 6], v[7 if r else 8]], removed_locked)
 
     # Calculate scores for all words
     scored_words = [(word[0], calculate_score(word[1:], current_time)) for word in simplified_list]

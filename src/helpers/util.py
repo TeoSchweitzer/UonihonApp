@@ -6,5 +6,6 @@ def resource(givenPath):
 
 
 WORDS_PATH = resource('data/words/words.txt')
+DICTIONARY_PATH = resource('data/words/dictionary.txt')
 SENTENCES_PATH = resource('data/words/sentences.txt')
 USAGE_PATH = resource('data/words/usage.txt')

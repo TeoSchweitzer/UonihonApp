@@ -45,12 +45,16 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   font-size: 40px;
 }
 
-.kanji {
+.kanji-text {
   color: lighten(@secondary,20%);
 }
 
-.kana {
+.kana-text {
   color: lighten(@tertiary,20%);
+}
+
+.hidden {
+  display: none;
 }
 
 .uonihon-html-divided-in-two-main-spaces {
@@ -88,8 +92,9 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
               'noKanji   noKanji   familiarity familiarity'
               'moreInfo  moreInfo  moreInfo    moreInfo'
               'lined lined lined lined'
-              'unlocked  unlocked  delete      delete'
-              'nothing   nothing   confirm     cancel';
+              'unlocked  unlocked  unlocked  unlocked'
+              'delete      delete  delete      delete'
+              'confirm   confirm   cancel      cancel';
 
             .line1 { grid-area: linea;}
             .line3 { grid-area: linec;}
@@ -101,7 +106,7 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
             .alternative { grid-area: alternative; height: 100%;}
             .explainer { grid-area: explainer;}
             .sentences { grid-area: sentences;}
-            .sentenceAdd { grid-area: sentenceAdd;}
+            .sentenceAdd { grid-area: sentenceAdd; display: flex;}
             .noKanji { grid-area: noKanji;}
             .familiarityDisplay { grid-area: familiarity;}
             .moreInfo { grid-area: moreInfo; font-size: 28px; font-style: italic; color: darken(@white, 20%);}
@@ -114,6 +119,11 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
 
           .words-list-activity {
             height: 100vh;
+
+            .word-list-separator {
+              margin: 15px;
+              font-size: 30px;
+            }
           }
 
         }

@@ -29,16 +29,16 @@
                     <div class="line1 line"> </div>
                     <div class="line5 line thicker"> </div>
                     <div class="line3 line"> </div>
-                    <div class="line4 line "> </div>
+                    <div class="line4 line  editable"> </div>
 
                     <div id="word-obfuscation-card" class="word obfuscation-container">
                         <div class="label">Mot <span id="no-kanji-label">(Prononciation)</span></div>
-                        <div id='word' class="card big-font">
+                        <div id='word' class="card big-font kanji-text">
                         </div>
                     </div>
                     <div id="reading-obfuscation-card" class="reading obfuscation-container">
                         <div class="label">Prononciation</div>
-                        <div id="reading" class="card kana big-font"></div>
+                        <div id="reading" class="card kana-text big-font"></div>
                     </div>
 
                     <div id="meaning-obfuscation-card" class="meaning obfuscation-container">
@@ -65,32 +65,29 @@
                         <span class="small">Ajouter une phrase</span>
                     </div>
 
-                    <div id="pronunciation-mode-button" class="noKanji card even-padding">
+                    <div id="pronunciation-mode-button" class="noKanji card even-padding editable">
                         <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style">
                         <span class="checkbox-label">Mode Prononciation</span>
                     </div>
 
-                    <div id="familiarity-choice-button" class="familiarityDisplay card even-padding">
+                    <div id="familiarity-choice-button" class="familiarityDisplay card even-padding editable">
                         Familiarité :&nbsp
                         <span id="familiarity"></span><br/>
                         <div id="familiarity-hint" class="familiarity-hint">(moyenne entre Lire et Dire)</div>
                     </div>
 
-                    <div class="moreInfo sub-footer">
+                    <div class="moreInfo sub-footer editable">
                         <span id="amount-seen-info">Nombre de fois vus : <span id="amount-seen-value"></span></span>
                         <span id="date-last-seen">&nbsp&nbsp&nbspDate du dernier test : <span id="date-last-seen-value"></span></span>
                     </div>
 
-                    <div id="unlocked-choice-button" class="unlocked card even-padding">
-                        <input type="checkbox" autocomplete="off" id="unlocked-checkbox" class="checkbox-style">
-                        <span class="checkbox-label">Évaluable</span>
+                    <div id="unlocked-choice-button" class="unlocked card even-padding dictionary">
+                        Créer Évaluable
                     </div>
 
-                    <div id="deletion-menu-button" class="delete card even-padding">
+                    <div id="deletion-menu-button" class="delete card even-padding editable">
                         Supprimer
                     </div>
-
-                    <div class="nothing"></div>
 
                     <div id="confirm-deletion-button" class="confirm card even-padding" style="visibility: collapse;">
                         Confirmer
@@ -118,6 +115,18 @@
                             <th>Autres</th>
                         </tr></thead>
                         <tbody id="word-list-table">
+                        </tbody>
+                    </table>
+
+                    <div class="word-list-separator">Dictionnaire :</div>
+                    <table class="elegant-table"><thead>
+                        <tr>
+                            <th>Mot</th>
+                            <th>Kana</th>
+                            <th>Sens</th>
+                            <th>Autres</th>
+                        </tr></thead>
+                        <tbody id="dictionary-list-table">
                         </tbody>
                     </table>
                 </div>

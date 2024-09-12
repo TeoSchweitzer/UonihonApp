@@ -51,7 +51,6 @@ addListener('explainer-obfuscation-card', (event) => obfuscateOrEdit(event, 'exp
 
 addListener('sentences-adder-button', addNewSentence);
 addListener('pronunciation-mode-button', switchNoKanjiMode);
-addListener('unlocked-choice-button', switchUnlockedMode);
 addListener('deletion-menu-button', showDeletionConfirmation);
 addListener('cancel-deletion-button', showDeletionConfirmation);
 addListener('confirm-deletion-button', null); //deleteCurrentWord);  //TODO
@@ -267,21 +266,16 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
     document.getElementById('meaning').innerText = currentWord.meaning ?? "";
     document.getElementById('alternative').innerText = currentWord.alternative ?? "";
     document.getElementById('explainer').innerText = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
-    document.getElementById('familiarity').innerText = currentWord.familiarity ?? "";
-    document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
-    document.getElementById('date-last-seen-value').innerText =
-        ((currentWord.lastTestDate??"") === "") ? "" : dateFormat.format(Date.parse(currentWord.lastTestDate));
 
-    switchNoKanjiMode(currentWord.useReading)
-    switchUnlockedMode(currentWord.unlocked)
-
-    if (currentFocus===undefined) {
-        document.getElementById('familiarity-choice-button').style.backgroundColor = 'transparent'
-        document.getElementById('familiarity-hint').style.display = 'block'
+    let editable = document.getElementsByClassName('editable')
+    let dictionary = document.getElementsByClassName('dictionary')
+    for (let i = 0; i < editable.length; i++) {
+        if (currentWord.id < 100000) { editable[i].classList.add("hidden") }
+        else { editable[i].classList.remove("hidden") }
     }
-    else {
-        document.getElementById('familiarity-choice-button').style = undefined
-        document.getElementById('familiarity-hint').style.display = 'none'
+    for (let i = 0; i < dictionary.length; i++) {
+        if (currentWord.id < 100000) { dictionary[i].classList.remove("hidden") }
+        else { dictionary[i].classList.add("hidden") }
     }
 
     let sentencesNode = document.getElementById('sentences-container');
@@ -302,6 +296,26 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
         addListener(`sentence${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `sentence${i + 1}`));
         addListener(`translation${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `translation${i + 1}`));
     });
+
+    if (currentWord.id < 100000) {
+        return
+    }
+
+    document.getElementById('familiarity').innerText = currentWord.familiarity ?? "";
+    document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
+    document.getElementById('date-last-seen-value').innerText =
+        ((currentWord.lastTestDate??"") === "") ? "" : dateFormat.format(Date.parse(currentWord.lastTestDate));
+
+    switchNoKanjiMode(currentWord.useReading)
+
+    if (currentFocus===undefined) {
+        document.getElementById('familiarity-choice-button').style.backgroundColor = 'transparent'
+        document.getElementById('familiarity-hint').style.display = 'block'
+    }
+    else {
+        document.getElementById('familiarity-choice-button').style = undefined
+        document.getElementById('familiarity-hint').style.display = 'none'
+    }
 
     refreshObfuscation();
 
@@ -338,7 +352,7 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
 }
 
 function heightLightWordIn(word, sentence) {
-    return sentence.replaceAll(word, `<span class="highlight kanji">${word}</span>`)
+    return sentence.replaceAll(word, `<span class="highlight kanji-text">${word}</span>`)
 }
 
 function obfuscateOrEdit(event, id) {
@@ -466,7 +480,9 @@ async function switchWordListVisibility(goToWordList) {
 
 function setWordList(wordList) {
     let listTableNode = document.querySelector('#word-list-table');
+    let dictionaryTableNode = document.querySelector('#dictionary-list-table');
     listTableNode.replaceChildren();
+    dictionaryTableNode.replaceChildren();
     wordList.split('\n').forEach(function (wordLine, i) {
         if (wordLine === "") return
         let splittedLine = wordLine.split('|')
@@ -476,8 +492,8 @@ function setWordList(wordList) {
                     <td>${splittedLine[2]}</td>
                     <td>${splittedLine[3]}</td>
                     <td>${splittedLine[4]}</td>
-                </tr>`
-        listTableNode.insertAdjacentHTML('beforeend', htmlSentence)
+                </tr>`;
+        ((parseInt(splittedLine[0]) > 100000) ? listTableNode : dictionaryTableNode).insertAdjacentHTML('beforeend', htmlSentence);
         addListener(`wordListIdx${i + 1}`, async ()=> await getWord(`${splittedLine[0].trim()}`));
     });
 }
@@ -491,7 +507,12 @@ function startSearchingInWordList() {
 }
 
 function filterWords(event) {
-    setWordList((words.split('\n').filter(w => w.includes(event.target.value))).join('\n'))
+    setWordList(
+        (words
+            .split('\n')
+            .filter(w => w.toUpperCase().includes((event.target?.value?.toUpperCase()??"")))
+        ).join('\n')
+    )
 }
 
 function reveal(id) {
@@ -509,13 +530,8 @@ function switchNoKanjiMode(value) {
     let wordNode = document.getElementById('word')
     wordNode.innerText = isNoKanji ? currentWord.reading : currentWord.word
     wordNode.classList.remove("kanji", "kana")
-    wordNode.classList.add(isNoKanji ? "kana" : "kanji")
+    wordNode.classList.add(isNoKanji ? "kana-text" : "kanji-text")
     document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
-}
-
-function switchUnlockedMode(value) {
-    currentWord.unlocked = value??(currentWord.unlocked==="0" ? "1" : "0")
-    document.getElementById("unlocked-checkbox").checked = currentWord.unlocked !== "0"
 }
 
 function showDeletionConfirmation() {
