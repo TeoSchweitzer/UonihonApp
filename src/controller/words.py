@@ -62,6 +62,22 @@ def word_get(word_id="chooseBest"):
     return json_response
 
 
+@route('/word/customize/<word_id>', method=['POST'])
+def save_word(word_id):
+    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
+        words_list = wordsFile.read().splitlines()
+    id_list = [int(word.split('|')[0].strip()) for word in words_list]
+    id_to_use = 100001
+    while id_to_use in id_list:
+        id_to_use += 1
+    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
+        dictionary_list = dictionaryFile.read().splitlines()
+    word_to_copy = next(filter(lambda v: v.split('|')[0].strip() == word_id, dictionary_list))
+    with open(util.WORDS_PATH, 'a') as file:
+        file.write(word_to_copy.replace(word_id, str(id_to_use), 1))
+    return str(id_to_use)
+
+
 @route('/word/save', method=['POST'])
 def save_word():
     update_values_for_word_and_focus(

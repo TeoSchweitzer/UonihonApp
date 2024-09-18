@@ -53,8 +53,9 @@ addListener('sentences-adder-button', addNewSentence);
 addListener('pronunciation-mode-button', switchNoKanjiMode);
 addListener('deletion-menu-button', showDeletionConfirmation);
 addListener('cancel-deletion-button', showDeletionConfirmation);
-addListener('confirm-deletion-button', null); //deleteCurrentWord);  //TODO
 addListener('add-word-button', addWord);
+addListener('confirm-deletion-button', null); //deleteCurrentWord);  //TODO
+addListener('unlocked-choice-button', copyDicoWordToCustom);
 addListener('familiarity-choice-button', (event) =>
     simpleOrDoubleClickHandler(event, null, () => edit('familiarity'))
 );
@@ -70,6 +71,19 @@ addListener('vocabulary-app-button', ()=>setVisibleMainTab('vocabularyTab'));
 addListener('kanji-app-button', ()=>setVisibleMainTab('kanjiTab'));
 addListener('kana-app-button', ()=>setVisibleMainTab('kanaTab'));
 
+function copyDicoWordToCustom() {
+        return fetch(HOST + "/word/customize/" + currentWord.id, {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json; charset=UTF-8",
+        }
+    })
+        .catch(error => alert(error))
+        .then((response) => response.text())
+        .then((newId) => {
+            getWord(newId)
+        });
+}
 
 export async function getWord(wordId, focus) {
 
