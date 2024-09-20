@@ -145,9 +145,6 @@ function getAllWords() {
 }
 
 function saveCurrentWord() {
-    if (currentWord.id === 100000) {
-        return
-    }
     if (currentFocus !== undefined) {
         currentWord.familiarity = (parseInt(currentWord.familiarity)+1) + ""
         currentWord.testAmount = (parseInt(currentWord.testAmount)+1) + ""

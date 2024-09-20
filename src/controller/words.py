@@ -30,7 +30,7 @@ def word_get(word_id="chooseBest"):
     current_time = datetime.datetime.now()
 
     if word_id == "chooseBest":
-        chosen_word_id = choose_word(usage_list, current_time, focus)
+        chosen_word_id = choose_word(words_list, usage_list, dictionary_list, current_time, focus)
     else:
         chosen_word_id = word_id.strip()
     chosen_word = next(filter(lambda v: v[0].strip() == chosen_word_id, map(lambda w: w.split("|"), words_list + dictionary_list)))
@@ -62,29 +62,57 @@ def word_get(word_id="chooseBest"):
     return json_response
 
 
-@route('/word/customize/<word_id>', method=['POST'])
-def save_word(word_id):
-    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
-        words_list = wordsFile.read().splitlines()
-    id_list = [int(word.split('|')[0].strip()) for word in words_list]
+
+def get_valid_new_id(id_list):
     id_to_use = 100001
-    while id_to_use in id_list:
+    while str(id_to_use) in id_list:
         id_to_use += 1
-    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
-        dictionary_list = dictionaryFile.read().splitlines()
-    word_to_copy = next(filter(lambda v: v.split('|')[0].strip() == word_id, dictionary_list))
-    with open(util.WORDS_PATH, 'a') as file:
-        file.write(word_to_copy.replace(word_id, str(id_to_use), 1))
     return str(id_to_use)
+
+
+def save_word_content(word):
+    word_was_found = False
+    new_line_as_array = [
+        word.get("id"),
+        word["word"],
+        word.get("reading") or "",
+        word.get("meaning") or "",
+        word.get("alternative") or "",
+        word.get("explainer") or "",
+    ]
+    existing_ids = []
+    # Create temp file
+    fh, abs_path = mkstemp()
+    with fdopen(fh, 'w') as new_file:
+        with open(util.WORDS_PATH) as old_file:
+            for line in old_file:
+                splitted = list(map(lambda v: v.strip(), line.split('|')))
+                if splitted[0].strip() == word.get("id"):
+                    word_was_found = True
+                    new_file.write(' | '.join(new_line_as_array) + '\n')
+                else:
+                    existing_ids.append(splitted[0].strip())
+                    new_file.write(line)
+            if not word_was_found:
+                new_line_as_array[0] = get_valid_new_id(existing_ids)
+                new_file.write(' | '.join(new_line_as_array) + '\n')
+    # Copy the file permissions from the old file to the new file
+    copymode(util.WORDS_PATH, abs_path)
+    # Remove original file
+    remove(util.WORDS_PATH)
+    # Move new file
+    move(abs_path, util.WORDS_PATH)
+    return new_line_as_array[0]
 
 
 @route('/word/save', method=['POST'])
 def save_word():
-    update_values_for_word_and_focus(
-        request.json,
-        datetime.datetime.now().isoformat(),
-        request.query.focus or "no-focus"
-    )
+    word_to_save = request.json
+    if int(word_to_save.get("id") or "0") < 100000:
+        return str(-1)
+    word_to_save["id"] = save_word_content(word_to_save)
+    save_word_usage(word_to_save, request.query.focus or "no-focus")
+    return word_to_save["id"]
 
 
 @route('/word/words/all', method=['GET'])
@@ -116,21 +144,21 @@ def get_word_usage(word_id, usage_list, focus):
     word = next(filter(lambda v: v.split('|')[0].strip() == word_id, usage_list), "").split('|')
     if len(word) < 2:
         return {}
-    # id|unlocked|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
+    # id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
     match focus:
         case "reading":
+            familiarity = word[2].strip()
+            test_amount = word[4].strip()
+            last_test_date = word[6].strip()
+        case "writing":
             familiarity = word[3].strip()
             test_amount = word[5].strip()
             last_test_date = word[7].strip()
-        case "writing":
-            familiarity = word[4].strip()
-            test_amount = word[6].strip()
-            last_test_date = word[8].strip()
         case _:
-            familiarity = str(int((int(word[3].strip()) + int(word[4].strip())) / 2))
-            test_amount = str(int(word[5].strip()) + int(word[6].strip()))
+            familiarity = str(int((int(word[2].strip()) + int(word[3].strip())) / 2))
+            test_amount = str(int(word[4].strip()) + int(word[5].strip()))
             last_test_date = datetime.datetime.isoformat(
-                max(datetime.datetime.fromisoformat(word[7].strip()), datetime.datetime.fromisoformat(word[8].strip())))
+                max(datetime.datetime.fromisoformat(word[6].strip()), datetime.datetime.fromisoformat(word[7].strip())))
     return {
         "unlocked": word[1].strip(),
         "useReading": word[2].strip(),
@@ -140,20 +168,20 @@ def get_word_usage(word_id, usage_list, focus):
     }
 
 
-def choose_word(usage_list, current_time, focus="no-focus"):
+def choose_word(words_list, usage_list, dictionary_list, current_time, focus="no-focus"):
     usage_array = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), usage_list))
+    word_array = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), words_list))
 
-    if focus == "no-focus":
-        only_locked = list(filter(lambda v: v[1] != "1", usage_array))
-        return random.choice(only_locked if len(only_locked) > 0 else usage_array)[0]
 
-    removed_locked = list(filter(lambda v: v[1] == "1", usage_array))
+    if focus == "no-focus" or len(word_array) == 0:
+        return random.choice(dictionary_list)[0]
 
-    if len(removed_locked) == 0:
-        return random.choice(list(usage_array))[0]
+    words_that_have_no_usage = list(filter(lambda v: v not in usage_array, word_array))
+    if len(words_that_have_no_usage) > 0:
+        return random.choice(words_that_have_no_usage[0])
 
     r = (focus == 'reading')
-    simplified_list = map(lambda v: [v[0], v[3 if r else 4], v[5 if r else 6], v[7 if r else 8]], removed_locked)
+    simplified_list = map(lambda v: [v[0], v[2 if r else 3], v[4 if r else 5], v[6 if r else 7]], usage_array)
 
     # Calculate scores for all words
     scored_words = [(word[0], calculate_score(word[1:], current_time)) for word in simplified_list]
@@ -186,29 +214,42 @@ def calculate_score(word_data, current_time):
     return score
 
 
-def update_values_for_word_and_focus(word, now, focus="no-focus"):
-    new_line_as_array = []
+def save_word_usage(word, focus="no-focus"):
+    now = datetime.datetime.now().isoformat()
+    date_for_new_words = datetime.datetime(2000, 1, 1).isoformat()
+    new_line_as_array = [
+        word.get("id"),
+        word.get("useReading") or "0",
+        (word.get("familiarity") or "0") if focus == "reading" else "0",
+        (word.get("familiarity") or "0") if focus == "writing" else "0",
+        (word.get("testAmount") or "0") if focus == "reading" else "0",
+        (word.get("testAmount" or "0")) if focus == "writing" else "0",
+        now if focus == "reading" else date_for_new_words,
+        now if focus == "writing" else date_for_new_words
+    ]
+    usage_found = False
+    #id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
     # Create temp file
     fh, abs_path = mkstemp()
     with fdopen(fh, 'w') as new_file:
         with open(util.USAGE_PATH) as old_file:
             for line in old_file:
                 splitted = list(map(lambda v: v.strip(), line.split('|')))
-                if splitted[0].strip() == word["id"]:
-                    new_line_as_array = [
-                        word["id"],
-                        word["unlocked"],
-                        word["useReading"],
-                        word["familiarity"] if focus == "reading" else splitted[3],
-                        word["familiarity"] if focus == "writing" else splitted[4],
-                        word["testAmount"] if focus == "reading" else splitted[5],
-                        word["testAmount"] if focus == "writing" else splitted[6],
-                        now if focus == "reading" else splitted[7],
-                        now if focus == "writing" else splitted[8]
-                    ]
+                if splitted[0].strip() == word.get("id"):
+                    usage_found = True
+                    if focus == "reading":
+                        new_line_as_array[3] = splitted[3]
+                        new_line_as_array[5] = splitted[5]
+                        new_line_as_array[7] = splitted[7]
+                    if focus == "writing":
+                        new_line_as_array[2] = splitted[2]
+                        new_line_as_array[4] = splitted[4]
+                        new_line_as_array[6] = splitted[6]
                     new_file.write(' | '.join(new_line_as_array) + '\n')
                 else:
                     new_file.write(line)
+            if not usage_found:
+                new_file.write(' | '.join(new_line_as_array) + '\n')
     # Copy the file permissions from the old file to the new file
     copymode(util.USAGE_PATH, abs_path)
     # Remove original file
@@ -225,9 +266,9 @@ id | familiarity | amount | last_seen
 3  | 21          | 55     | 2024-08-27T23:35:55.654608
 4  | 0           | 52752  | 2024-08-27T23:35:55.654608
 
-id | unlocked | use_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read                  | last_write 
-1  | 1        | 0            | 10                  | 4                   | 28          | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-2  | 1        | 1            | 20                  | 3                   | 42212       | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-3  | 0        | 0            | 30                  | 2                   | 21          | 55           | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-4  | 1        | 1            | 40                  | 1                   | 0           | 52752        | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
+id  | use_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read                  | last_write 
+1   | 0            | 10                  | 4                   | 28          | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
+2   | 1            | 20                  | 3                   | 42212       | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
+3   | 0            | 30                  | 2                   | 21          | 55           | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
+4   | 1            | 40                  | 1                   | 0           | 52752        | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
 '''
