@@ -72,17 +72,8 @@ addListener('kanji-app-button', ()=>setVisibleMainTab('kanjiTab'));
 addListener('kana-app-button', ()=>setVisibleMainTab('kanaTab'));
 
 function copyDicoWordToCustom() {
-        return fetch(HOST + "/word/customize/" + currentWord.id, {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json; charset=UTF-8",
-        }
-    })
-        .catch(error => alert(error))
-        .then((response) => response.text())
-        .then((newId) => {
-            getWord(newId)
-        });
+    currentWord.id = 100000;
+    setDisplayedWordToCurrentWord()
 }
 
 export async function getWord(wordId, focus) {
@@ -154,7 +145,7 @@ function getAllWords() {
 }
 
 function saveCurrentWord() {
-    if (currentWord.id === -1) {
+    if (currentWord.id === 100000) {
         return
     }
     if (currentFocus !== undefined) {
@@ -275,18 +266,18 @@ function getTextFromLlm(prompt, model, strict, doWithResult) {
 }
 
 function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
-    document.getElementById('word').innerText = currentWord.word ?? "";
-    document.getElementById('reading').innerText = currentWord.reading ?? "";
-    document.getElementById('meaning').innerText = currentWord.meaning ?? "";
+    document.getElementById('word').innerText        = currentWord.word ?? "";
+    document.getElementById('reading').innerText     = currentWord.reading ?? "";
+    document.getElementById('meaning').innerText     = currentWord.meaning ?? "";
     document.getElementById('alternative').innerText = currentWord.alternative ?? "";
-    document.getElementById('explainer').innerText = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
+    document.getElementById('explainer').innerText   = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
 
     let editable = document.getElementsByClassName('editable')
-    let dictionary = document.getElementsByClassName('dictionary')
     for (let i = 0; i < editable.length; i++) {
         if (currentWord.id < 100000) { editable[i].classList.add("hidden") }
         else { editable[i].classList.remove("hidden") }
     }
+    let dictionary = document.getElementsByClassName('dictionary')
     for (let i = 0; i < dictionary.length; i++) {
         if (currentWord.id < 100000) { dictionary[i].classList.remove("hidden") }
         else { dictionary[i].classList.add("hidden") }
@@ -386,7 +377,7 @@ function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfDoubleCl
 
 function edit(divId) {
 
-    if (divId==="familiarity" && currentFocus === undefined) {
+    if ((divId==="familiarity" && currentFocus === undefined) || currentWord.id < 10000) {
         return
     }
 
@@ -414,21 +405,21 @@ function edit(divId) {
             if (div.textContent === "") {
                 currentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
             } else {
-                currentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = div.textContent
+                currentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = div.innerText
             }
         }
         else if (divId === "familiarity") {
             if (div.textContent !== "" && /^\d+$/.test(div.textContent)) {
-                currentWord[divId] = div.textContent;
+                currentWord[divId] = div.innerText;
             }
         }
         else if (divId === "word") {
             if (div.textContent !== "") {
-                currentWord[divId] = div.textContent;
+                currentWord[divId] = div.innerText;
             }
         }
         else {
-            currentWord[divId] = div.textContent
+            currentWord[divId] = div.innerText
         }
         setDisplayedWordToCurrentWord(divId);
     });
@@ -597,7 +588,7 @@ async function addWord() {
     currentFocus = undefined;
     let wordToAdd = document.getElementById('search-bar-input').value
     currentWord = {
-        id: -1,
+        id: 100000,
         word: wordToAdd,
         reading: "",
         meaning: "",
