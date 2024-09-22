@@ -72,7 +72,7 @@ addListener('kanji-app-button', ()=>setVisibleMainTab('kanjiTab'));
 addListener('kana-app-button', ()=>setVisibleMainTab('kanaTab'));
 
 function copyDicoWordToCustom() {
-    currentWord.id = 100000;
+    currentWord.id = undefined;
     setDisplayedWordToCurrentWord()
 }
 
@@ -136,7 +136,7 @@ function refreshObfuscation() {
 }
 
 function getAllWords() {
-    return fetch(HOST + "/word/words/all", {
+    return fetch(HOST + "/word/all", {
         method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
     }).then((response) => response.text()).then((response) => {
         words = response;
@@ -149,11 +149,16 @@ function saveCurrentWord() {
         currentWord.familiarity = (parseInt(currentWord.familiarity)+1) + ""
         currentWord.testAmount = (parseInt(currentWord.testAmount)+1) + ""
     }
-    return fetch(HOST + "/word/save" + (currentFocus ? ("?" + new URLSearchParams({focus: currentFocus}).toString()) : ""), {
-        method: "POST", keepalive: true,
-        headers: { "Content-type": "application/json; charset=UTF-8" },
-        body: JSON.stringify(currentWord)
-    }).catch(error => alert(error));
+    let isNewWord = currentWord.id === undefined
+    return fetch(
+        HOST
+            + "/word"
+            + (isNewWord ? "" : "/"+currentWord.id)
+            + (currentFocus ? ("?" + new URLSearchParams({focus: currentFocus}).toString()) : ""),
+        {   method: (isNewWord ? "POST" : "PUT"), keepalive: true,
+            headers: { "Content-type": "application/json; charset=UTF-8" },
+            body: JSON.stringify(currentWord)
+        }).catch(error => alert(error));
 }
 
 function explainerPrompt(word) {
@@ -271,12 +276,12 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
 
     let editable = document.getElementsByClassName('editable')
     for (let i = 0; i < editable.length; i++) {
-        if (currentWord.id < 100000) { editable[i].classList.add("hidden") }
+        if (currentWord.id??100000 < 100000) { editable[i].classList.add("hidden") }
         else { editable[i].classList.remove("hidden") }
     }
     let dictionary = document.getElementsByClassName('dictionary')
     for (let i = 0; i < dictionary.length; i++) {
-        if (currentWord.id < 100000) { dictionary[i].classList.remove("hidden") }
+        if (currentWord.id??100000 < 100000) { dictionary[i].classList.remove("hidden") }
         else { dictionary[i].classList.add("hidden") }
     }
 
@@ -299,7 +304,7 @@ function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
         addListener(`translation${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `translation${i + 1}`));
     });
 
-    if (currentWord.id < 100000) {
+    if (currentWord.id??100000 < 100000) {
         return
     }
 
@@ -374,7 +379,7 @@ function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfDoubleCl
 
 function edit(divId) {
 
-    if ((divId==="familiarity" && currentFocus === undefined) || currentWord.id < 10000) {
+    if ((divId==="familiarity" && currentFocus === undefined) || currentWord.id??100000 < 100000) {
         return
     }
 
@@ -585,7 +590,7 @@ async function addWord() {
     currentFocus = undefined;
     let wordToAdd = document.getElementById('search-bar-input').value
     currentWord = {
-        id: 100000,
+        id: undefined,
         word: wordToAdd,
         reading: "",
         meaning: "",

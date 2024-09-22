@@ -1,274 +1,68 @@
-import random
 from bottle import *
 import json
-import math
-import datetime
-from tempfile import mkstemp
-from shutil import move, copymode
-from os import fdopen, remove
 from helpers import util
+from helpers.util import get_file_content_as_arrays
+from model.words_service import choose_word, parse_word_usage_for_given_focus, \
+    usage_file_upkeep, create_custom_word, update_custom_word
 
 
-@route('/word', method=['GET'])
-def word_get_next():
-    return word_get()
-
-
-@route('/word/<word_id>', method=['GET'])
-def word_get(word_id="chooseBest"):
-    focus = request.query.focus or 'no-focus'
-
-    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
-        words_list = wordsFile.read().splitlines()
-    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
-        dictionary_list = dictionaryFile.read().splitlines()
-    with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
-        sentences_list = sentencesFile.read().splitlines()
-    with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
-        usage_list = usageFile.read().splitlines()
-
-    current_time = datetime.datetime.now()
-
-    if word_id == "chooseBest":
-        chosen_word_id = choose_word(words_list, usage_list, dictionary_list, current_time, focus)
-    else:
-        chosen_word_id = word_id.strip()
-    chosen_word = next(filter(lambda v: v[0].strip() == chosen_word_id, map(lambda w: w.split("|"), words_list + dictionary_list)))
-
-    word_usage = get_word_usage(chosen_word_id, usage_list, focus)
-
-    chosen_sentences = [sentence for sentence in sentences_list if (chosen_word[1].strip() in sentence.split("|")[1])]
-
-    sentences_array = []
-    for sentence in chosen_sentences:
-        sentence_object = {}
-        splitted = sentence.split("|")
-        sentence_object['id'] = splitted[0].strip()
-        sentence_object['japanese'] = splitted[1].strip()
-        sentence_object['translation'] = splitted[2].strip()
-        sentences_array.append(sentence_object.copy())
-
-    result = {'id': chosen_word[0].strip(),
-              'word': chosen_word[1].strip(),
-              'reading': chosen_word[2].strip(),
-              'meaning': chosen_word[3].strip(),
-              'alternative': chosen_word[4].strip(),
-              'explainer': chosen_word[5].strip(),
-              'sentences': sentences_array
-              }
-    result = result | word_usage
-    json_response = json.dumps(result)
-
-    return json_response
-
-
-
-def get_valid_new_id(id_list):
-    id_to_use = 100001
-    while str(id_to_use) in id_list:
-        id_to_use += 1
-    return str(id_to_use)
-
-
-def save_word_content(word):
-    word_was_found = False
-    new_line_as_array = [
-        word.get("id"),
-        word["word"],
-        word.get("reading") or "",
-        word.get("meaning") or "",
-        word.get("alternative") or "",
-        word.get("explainer") or "",
-    ]
-    existing_ids = []
-    # Create temp file
-    fh, abs_path = mkstemp()
-    with fdopen(fh, 'w') as new_file:
-        with open(util.WORDS_PATH) as old_file:
-            for line in old_file:
-                splitted = list(map(lambda v: v.strip(), line.split('|')))
-                if splitted[0].strip() == word.get("id"):
-                    word_was_found = True
-                    new_file.write(' | '.join(new_line_as_array) + '\n')
-                else:
-                    existing_ids.append(splitted[0].strip())
-                    new_file.write(line)
-            if not word_was_found:
-                new_line_as_array[0] = get_valid_new_id(existing_ids)
-                new_file.write(' | '.join(new_line_as_array) + '\n')
-    # Copy the file permissions from the old file to the new file
-    copymode(util.WORDS_PATH, abs_path)
-    # Remove original file
-    remove(util.WORDS_PATH)
-    # Move new file
-    move(abs_path, util.WORDS_PATH)
-    return new_line_as_array[0]
-
-
-@route('/word/save', method=['POST'])
-def save_word():
-    word_to_save = request.json
-    if int(word_to_save.get("id") or "0") < 100000:
-        return str(-1)
-    word_to_save["id"] = save_word_content(word_to_save)
-    save_word_usage(word_to_save, request.query.focus or "no-focus")
-    return word_to_save["id"]
-
-
-@route('/word/words/all', method=['GET'])
-def get_all_words():
-    with open(util.WORDS_PATH, 'r', encoding="utf-8") as wordsFile:
-        words_list = wordsFile.read().splitlines()
-    with open(util.DICTIONARY_PATH, 'r', encoding="utf-8") as dictionaryFile:
-        dictionary_list = dictionaryFile.read().splitlines()
-    full_list = words_list + dictionary_list
-    full_list = [('|'.join(word.split('|')[:-1])) for word in full_list]
+@route('/word/all', method='GET')
+def get_list_of_custom_and_dico_words():
+    full_list = get_file_content_as_arrays(util.WORDS_PATH) + get_file_content_as_arrays(util.DICTIONARY_PATH)
+    full_list = ['|'.join(word[:-1]) for word in full_list]
     return '\n'.join(full_list)
 
 
-@route('/word/sentences/all', method=['GET'])
-def get_all_sentences():
-    with open(util.SENTENCES_PATH, 'r', encoding="utf-8") as sentencesFile:
-        sentences_list = sentencesFile.read()
-    return sentences_list
+@route('/word', method='GET')
+@route('/word/<word_id>', method='GET')
+def get_word_from_id_or_score(word_id="fromScore"):
+    focus = request.query.focus or 'no-focus'
 
+    custom_words_list_splitted = get_file_content_as_arrays(util.WORDS_PATH)
+    dictionary_list_splitted = get_file_content_as_arrays(util.DICTIONARY_PATH)
+    usage_list_splitted = get_file_content_as_arrays(util.SENTENCES_PATH)
+    sentences_list_splitted = get_file_content_as_arrays(util.USAGE_PATH)
 
-@route('/word/usage/all', method=['GET'])
-def get_all_usage():
-    with open(util.USAGE_PATH, 'r', encoding="utf-8") as usageFile:
-        usage_list = usageFile.read()
-    return usage_list
+    usage_file_upkeep(custom_words_list_splitted, usage_list_splitted)
 
+    if word_id == "fromScore":
+        chosen_word_id = choose_word(custom_words_list_splitted, usage_list_splitted, dictionary_list_splitted, focus)
+    else:
+        chosen_word_id = word_id.strip()
+        
+    chosen_word = next(filter(lambda v: v[0] == chosen_word_id, custom_words_list_splitted + dictionary_list_splitted), None)
+    if chosen_word is None:
+        return "Word with id" + chosen_word_id + " not found"
 
-def get_word_usage(word_id, usage_list, focus):
-    word = next(filter(lambda v: v.split('|')[0].strip() == word_id, usage_list), "").split('|')
-    if len(word) < 2:
-        return {}
-    # id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
-    match focus:
-        case "reading":
-            familiarity = word[2].strip()
-            test_amount = word[4].strip()
-            last_test_date = word[6].strip()
-        case "writing":
-            familiarity = word[3].strip()
-            test_amount = word[5].strip()
-            last_test_date = word[7].strip()
-        case _:
-            familiarity = str(int((int(word[2].strip()) + int(word[3].strip())) / 2))
-            test_amount = str(int(word[4].strip()) + int(word[5].strip()))
-            last_test_date = datetime.datetime.isoformat(
-                max(datetime.datetime.fromisoformat(word[6].strip()), datetime.datetime.fromisoformat(word[7].strip())))
-    return {
-        "unlocked": word[1].strip(),
-        "useReading": word[2].strip(),
-        "familiarity": familiarity,
-        "testAmount": test_amount,
-        "lastTestDate": last_test_date
+    chosen_sentences = [sentence for sentence in sentences_list_splitted if (chosen_word[1] in sentence[1])]
+
+    result = {
+        'id': chosen_word[0],
+        'word': chosen_word[1],
+        'reading': chosen_word[2],
+        'meaning': chosen_word[3],
+        'alternative': chosen_word[4],
+        'explainer': chosen_word[5],
+        'sentences': [{
+            'id': sentence[0],
+            'japanese': sentence[1],
+            'translation': sentence[2]
+        } for sentence in chosen_sentences]
     }
 
+    word_usage = parse_word_usage_for_given_focus(chosen_word_id, usage_list_splitted, focus)
+    final_result = result | word_usage
 
-def choose_word(words_list, usage_list, dictionary_list, current_time, focus="no-focus"):
-    usage_array = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), usage_list))
-    word_array = list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), words_list))
-
-
-    if focus == "no-focus" or len(word_array) == 0:
-        return random.choice(dictionary_list)[0]
-
-    words_that_have_no_usage = list(filter(lambda v: v not in usage_array, word_array))
-    if len(words_that_have_no_usage) > 0:
-        return random.choice(words_that_have_no_usage[0])
-
-    r = (focus == 'reading')
-    simplified_list = map(lambda v: [v[0], v[2 if r else 3], v[4 if r else 5], v[6 if r else 7]], usage_array)
-
-    # Calculate scores for all words
-    scored_words = [(word[0], calculate_score(word[1:], current_time)) for word in simplified_list]
-
-    # Select the word with the highest score
-    selected_word_id = max(scored_words, key=lambda v: v[1])[0]
-
-    return selected_word_id
+    return json.dumps(final_result)
 
 
-def calculate_score(word_data, current_time):
-    familiarity, times_tested, last_test_str = word_data
-    familiarity = int(familiarity)
-    times_tested = int(times_tested)
-    last_test = datetime.datetime.fromisoformat(last_test_str)
+@route('/word', method='POST')
+def save_or_update_word():
+    return create_custom_word(request.json)
 
-    # Time factor: more points for words not tested recently
-    time_diff = (current_time - last_test).total_seconds() / 3600  # hours
-    time_factor = math.log(time_diff + 1)  # log scale to prevent extreme values
-
-    # Familiarity factor: more points for less familiar words
-    familiarity_factor = 1 / (familiarity + 1)  # +1 to avoid division by zero
-
-    # Test frequency factor: slightly more points for less tested words
-    frequency_factor = 1 / math.sqrt(times_tested + 1)  # square root to reduce impact
-
-    # Combine factors. You can adjust weights here.
-    score = (time_factor * 0.5) + (familiarity_factor * 0.3) + (frequency_factor * 0.2)
-
-    return score
+@route('/word/<word_id>', method='PUT')
+def save_or_update_word(word_id):
+    return update_custom_word(word_id, request.json, request.query.focus or "no_focus")
 
 
-def save_word_usage(word, focus="no-focus"):
-    now = datetime.datetime.now().isoformat()
-    date_for_new_words = datetime.datetime(2000, 1, 1).isoformat()
-    new_line_as_array = [
-        word.get("id"),
-        word.get("useReading") or "0",
-        (word.get("familiarity") or "0") if focus == "reading" else "0",
-        (word.get("familiarity") or "0") if focus == "writing" else "0",
-        (word.get("testAmount") or "0") if focus == "reading" else "0",
-        (word.get("testAmount" or "0")) if focus == "writing" else "0",
-        now if focus == "reading" else date_for_new_words,
-        now if focus == "writing" else date_for_new_words
-    ]
-    usage_found = False
-    #id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
-    # Create temp file
-    fh, abs_path = mkstemp()
-    with fdopen(fh, 'w') as new_file:
-        with open(util.USAGE_PATH) as old_file:
-            for line in old_file:
-                splitted = list(map(lambda v: v.strip(), line.split('|')))
-                if splitted[0].strip() == word.get("id"):
-                    usage_found = True
-                    if focus == "reading":
-                        new_line_as_array[3] = splitted[3]
-                        new_line_as_array[5] = splitted[5]
-                        new_line_as_array[7] = splitted[7]
-                    if focus == "writing":
-                        new_line_as_array[2] = splitted[2]
-                        new_line_as_array[4] = splitted[4]
-                        new_line_as_array[6] = splitted[6]
-                    new_file.write(' | '.join(new_line_as_array) + '\n')
-                else:
-                    new_file.write(line)
-            if not usage_found:
-                new_file.write(' | '.join(new_line_as_array) + '\n')
-    # Copy the file permissions from the old file to the new file
-    copymode(util.USAGE_PATH, abs_path)
-    # Remove original file
-    remove(util.USAGE_PATH)
-    # Move new file
-    move(abs_path, util.USAGE_PATH)
-    return new_line_as_array
 
-
-'''
-id | familiarity | amount | last_seen 
-1  | 28          | 0      | 2024-08-27T23:35:55.654608
-2  | 42212       | 0      | 2024-08-27T23:35:55.654608
-3  | 21          | 55     | 2024-08-27T23:35:55.654608
-4  | 0           | 52752  | 2024-08-27T23:35:55.654608
-
-id  | use_reading | reading_familiarity | writing_familiarity | amount_read | amount_write | last_read                  | last_write 
-1   | 0            | 10                  | 4                   | 28          | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-2   | 1            | 20                  | 3                   | 42212       | 0            | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-3   | 0            | 30                  | 2                   | 21          | 55           | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-4   | 1            | 40                  | 1                   | 0           | 52752        | 2024-08-27T23:35:55.654608 | 2024-08-27T23:35:55.654608
-'''
