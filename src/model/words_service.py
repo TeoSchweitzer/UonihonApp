@@ -80,7 +80,7 @@ def save_word_content(word):
         word.get("reading") or "",
         word.get("meaning") or "",
         word.get("alternative") or "",
-        word.get("explainer") or "",
+        (word.get("explainer") or "").replace('\n', '\\n'),
     ]
 
     def update_file(old_file, new_file):

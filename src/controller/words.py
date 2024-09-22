@@ -20,8 +20,8 @@ def get_word_from_id_or_score(word_id="fromScore"):
 
     custom_words_list_splitted = get_file_content_as_arrays(util.WORDS_PATH)
     dictionary_list_splitted = get_file_content_as_arrays(util.DICTIONARY_PATH)
-    usage_list_splitted = get_file_content_as_arrays(util.SENTENCES_PATH)
-    sentences_list_splitted = get_file_content_as_arrays(util.USAGE_PATH)
+    usage_list_splitted = get_file_content_as_arrays(util.USAGE_PATH)
+    sentences_list_splitted = get_file_content_as_arrays(util.SENTENCES_PATH)
 
     usage_file_upkeep(custom_words_list_splitted, usage_list_splitted)
 
@@ -38,6 +38,7 @@ def get_word_from_id_or_score(word_id="fromScore"):
 
     result = {
         'id': chosen_word[0],
+        'isDico' : "1" if int(chosen_word[0]) < 100000 else "0",
         'word': chosen_word[1],
         'reading': chosen_word[2],
         'meaning': chosen_word[3],

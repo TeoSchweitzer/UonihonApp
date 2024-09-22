@@ -21,7 +21,6 @@ def apply_cors():
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, PUT, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = HEADERS
-    response.headers["X-Content-Type-Options"] = "*"
 
 
 app = default_app()
@@ -39,7 +38,9 @@ def get_home():
 def get_asset(resource):
     with open(util.resource(resource), 'rb') as theFile:
         the_resource = theFile.read()
-    if resource.endswith(".js"):
+    if resource.endswith("main-app.js"):
+        response.headers["Content-Type"] = "text/javascript"
+    elif resource.endswith(".js") or ("/javascript" in resource):
         response.headers["Content-Type"] = "text/javascript"
     return the_resource
 
