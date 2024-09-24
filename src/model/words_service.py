@@ -82,57 +82,87 @@ def save_word_content(word):
         word.get("alternative") or "",
         (word.get("explainer") or "").replace('\n', '\\n'),
     ]
-
     def update_file(old_file, new_file):
         existing_ids = []
         word_was_found = False
         for line in old_file:
             splitted = list(map(lambda v: v.strip(), line.split('|')))
-            if splitted[0].strip() == word.get("id"):
+            if splitted[0] == word.get("id"):
                 word_was_found = True
                 new_file.write(' | '.join(new_line_as_array) + '\n')
             else:
-                existing_ids.append(splitted[0].strip())
+                existing_ids.append(splitted[0])
                 new_file.write(line)
         if not word_was_found:
             new_line_as_array[0] = get_valid_new_id(existing_ids)
             new_file.write(' | '.join(new_line_as_array) + '\n')
 
-    modify_file(util.WORDS_PATH, (lambda x,y:x), update_file)
+    modify_file(util.WORDS_PATH, update_file)
+
+    save_sentences(word.get('sentences') or [])
 
     return new_line_as_array[0]
+
+
+def save_sentences(sentences):
+    sentences = list(filter(lambda v: len(v.get("japanese") or "") > 0 and len(v.get("translation") or "") > 0, sentences))
+    if len(sentences) == 0:
+        return
+    def update_file(old_file, new_file):
+        processed_sentences = []
+        existing_ids = []
+        for line in old_file:
+            splitted = list(map(lambda v: v.strip(), line.split('|')))
+            existing_ids.append(splitted[0])
+            has_been_replaced = False
+            for sentence in sentences:
+                if splitted[0] == sentence.get("id") and (not (sentence.get("id") in processed_sentences)):
+                    new_file.write(f'{sentence.get("id")} | {sentence.get("japanese")} | {sentence.get("translation")}\n')
+                    processed_sentences.append(sentence.get("id"))
+                    has_been_replaced = True
+                    break
+            if not has_been_replaced:
+                new_file.write(line)
+        for sentence in sentences:
+            if sentence.get("id") is None or (not (sentence.get("id") in processed_sentences)):
+                new_valid_id = get_valid_new_id(existing_ids, 1)
+                new_file.write(f'{new_valid_id} | {sentence.get("japanese")} | {sentence.get("translation")}\n')
+                existing_ids.append(new_valid_id)
+
+    modify_file(util.SENTENCES_PATH, update_file)
 
 
 def save_word_usage(word, focus):
     now = datetime.datetime.now().isoformat()
     #id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
-    def update_line(line, new_file):
-        splitted = list(map(lambda v: v.strip(), line.split('|')))
-        if splitted[0].strip() == word.get("id"):
-            new_line_as_array = [word["id"], word["useReading"]]
-            if focus == "reading":
-                new_line_as_array.extend([
-                    word["familiarity"],
-                    splitted[3],
-                    word["testAmount"],
-                    splitted[5],
-                    now,
-                    splitted[7]
-                ])
-            if focus == "writing":
-                new_line_as_array.extend([
-                    splitted[2],
-                    word["familiarity"],
-                    splitted[4],
-                    word["testAmount"],
-                    splitted[6],
-                    now
-                ])
-            new_file.write(' | '.join(new_line_as_array) + '\n')
-        else:
-            new_file.write(line)
+    def update_lines(old_file, new_file):
+        for line in old_file:
+            splitted = list(map(lambda v: v.strip(), line.split('|')))
+            if splitted[0].strip() == word.get("id"):
+                new_line_as_array = [word["id"], word["useReading"]]
+                if focus == "reading":
+                    new_line_as_array.extend([
+                        word["familiarity"],
+                        splitted[3],
+                        word["testAmount"],
+                        splitted[5],
+                        now,
+                        splitted[7]
+                    ])
+                if focus == "writing":
+                    new_line_as_array.extend([
+                        splitted[2],
+                        word["familiarity"],
+                        splitted[4],
+                        word["testAmount"],
+                        splitted[6],
+                        now
+                    ])
+                new_file.write(' | '.join(new_line_as_array) + '\n')
+            else:
+                new_file.write(line)
 
-    modify_file(util.USAGE_PATH, update_line)
+    modify_file(util.USAGE_PATH, update_lines)
 
     return word.get("id")
 
@@ -152,10 +182,11 @@ def usage_file_upkeep(custom_words_lines, usage_lines):
             for word_id in ids_in_custom_words_not_in_usage:
                 usage_file.write(f'{word_id} | 0 | 0 | 0 | 0 | 0 | {date_for_new_words} |  {date_for_new_words}\n')
     if len(ids_in_usage_not_in_custom_words) != 0:
-        def only_keep_words_that_are_in_custom_words(line, new_file) :
-            old_file_splitted_line = list(map(lambda v: v.strip(), line.split('|')))
-            if old_file_splitted_line[0].strip() in ids_in_custom_words:
-                new_file.write(line)
+        def only_keep_words_that_are_in_custom_words(old_file, new_file) :
+            for line in old_file:
+                old_file_splitted_line = list(map(lambda v: v.strip(), line.split('|')))
+                if old_file_splitted_line[0].strip() in ids_in_custom_words:
+                    new_file.write(line)
         modify_file(util.USAGE_PATH, only_keep_words_that_are_in_custom_words)
 
 
@@ -168,10 +199,26 @@ def create_custom_word(word_to_save):
 def update_custom_word(word_id, word_to_save, focus="no_focus"):
     if int(word_id) < 100000:
         return str(-1)
-
     save_word_content(word_to_save)
-
-    if focus is not "no_focus":
+    if focus != "no_focus":
         save_word_usage(word_to_save, focus)
-
     return word_id
+
+
+def delete_custom_word(word_id):
+    def delete_given_word(old_file, new_file):
+        for line in old_file:
+            splitted = list(map(lambda v: v.strip(), line.split('|')))
+            if splitted[0] != word_id:
+                new_file.write(line)
+    modify_file(util.USAGE_PATH, delete_given_word)
+    modify_file(util.WORDS_PATH, delete_given_word)
+
+
+def delete_sentence_from_id(sentence_id):
+    def delete_given_sentence(old_file, new_file):
+        for line in old_file:
+            splitted = list(map(lambda v: v.strip(), line.split('|')))
+            if splitted[0] != sentence_id:
+                new_file.write(line)
+    modify_file(util.SENTENCES_PATH, delete_given_sentence)

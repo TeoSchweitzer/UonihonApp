@@ -3,8 +3,8 @@ from shutil import copymode, move
 from tempfile import mkstemp
 
 
-def resource(givenPath):
-    return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/../resource/' + givenPath)
+def resource(given_path):
+    return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/../resource/' + given_path)
 
 
 def get_valid_new_id(id_list, base_id=100001):
@@ -14,13 +14,11 @@ def get_valid_new_id(id_list, base_id=100001):
     return str(id_to_use)
 
 
-def modify_file(file_path, do_with_each_old_line=(lambda x,y:x), do_with_old_file=(lambda x,y:x)):
+def modify_file(file_path, edition_function=(lambda x,y:x)):
     fh, abs_path = mkstemp()
     with os.fdopen(fh, 'w') as new_file:
         with open(file_path) as old_file:
-            for line in old_file:
-                do_with_each_old_line(line, new_file)
-            do_with_old_file(old_file, new_file)
+            edition_function(old_file, new_file)
     # Copy the file permissions from the old file to the new file
     copymode(file_path, abs_path)
     # Remove original file

@@ -1,9 +1,11 @@
+import random
+
 from bottle import *
 import json
 from helpers import util
 from helpers.util import get_file_content_as_arrays
 from model.words_service import choose_word, parse_word_usage_for_given_focus, \
-    usage_file_upkeep, create_custom_word, update_custom_word
+    usage_file_upkeep, create_custom_word, update_custom_word, delete_custom_word, delete_sentence_from_id
 
 
 @route('/word/all', method='GET')
@@ -35,6 +37,8 @@ def get_word_from_id_or_score(word_id="fromScore"):
         return "Word with id" + chosen_word_id + " not found"
 
     chosen_sentences = [sentence for sentence in sentences_list_splitted if (chosen_word[1] in sentence[1])]
+    if len(chosen_sentences) > 5:
+        chosen_sentences = random.sample(chosen_sentences, 5)
 
     result = {
         'id': chosen_word[0],
@@ -58,12 +62,20 @@ def get_word_from_id_or_score(word_id="fromScore"):
 
 
 @route('/word', method='POST')
-def save_or_update_word():
+def save_word():
     return create_custom_word(request.json)
 
+
 @route('/word/<word_id>', method='PUT')
-def save_or_update_word(word_id):
+def update_word(word_id):
     return update_custom_word(word_id, request.json, request.query.focus or "no_focus")
 
 
+@route('/word/<word_id>', method='DELETE')
+def delete_word(word_id):
+    return delete_custom_word(word_id)
 
+
+@route('/word/sentence/<sentence_id>', method='DELETE')
+def delete_sentence(sentence_id):
+    return delete_sentence_from_id(sentence_id)

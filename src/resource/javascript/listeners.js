@@ -5,7 +5,8 @@ import {
     getWord,
     obfuscateOrEdit,
     saveCurrentWord, simpleOrDoubleClickHandler,
-    switchNoKanjiMode
+    switchNoKanjiMode,
+    deleteCurrentWord
 } from "./logic.js";
 import {startSearchingInWordList} from "./word-list.js";
 import {setVisibleMainTab, showDeletionConfirmation, switchTabsVisibility} from "./display_management.js";
@@ -32,18 +33,20 @@ addListener('alternative-obfuscation-card', (event) => obfuscateOrEdit(event, 'a
 addListener('explainer-obfuscation-card', (event) => obfuscateOrEdit(event, 'explainer'));
 
 addListener('sentences-adder-button', addNewSentence);
+
 addListener('pronunciation-mode-button', switchNoKanjiMode);
-addListener('deletion-menu-button', showDeletionConfirmation);
-addListener('cancel-deletion-button', showDeletionConfirmation);
-addListener('add-word-button', addWord);
-addListener('confirm-deletion-button', null); //deleteCurrentWord);  //TODO
-addListener('unlocked-choice-button', copyDicoWordToCustom);
 addListener('familiarity-choice-button', (event) =>
     simpleOrDoubleClickHandler(event, null, () => edit('familiarity'))
 );
+addListener('deletion-menu-button', showDeletionConfirmation);
+addListener('cancel-deletion-button', showDeletionConfirmation);
+addListener('confirm-deletion-button', deleteCurrentWord);
+
+addListener('unlocked-choice-button', copyDicoWordToCustom);
 
 addListener('search-bar-input', ()=>switchTabsVisibility(false), "focusin");
 addListener('search-bar-input', ()=>switchTabsVisibility(true), "focusout");
+addListener('add-word-button', addWord);
 
 addListener('reading-test-button', ()=>getWord(null, 'reading'));
 addListener('search-words-button', startSearchingInWordList);

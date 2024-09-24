@@ -3,7 +3,6 @@ import {
     clearDoubleClickTimer,
     currentFocus,
     currentWord,
-    doubleClickTimer,
     setCurrentFocus,
     setCurrentWord,
     setDoubleClickTimer
@@ -11,14 +10,18 @@ import {
 import {HOST} from "./constants.js";
 import {reveal, setDisplayedWordToCurrentWord} from "./display_management.js";
 
-export function copyDicoWordToCustom() {
-    setCurrentWord({...currentWord, id: undefined, isDico: "0"})
-    setDisplayedWordToCurrentWord()
+export async function copyDicoWordToCustom() {
+    setCurrentWord({...currentWord, id: undefined, isDico: "0"});
+    setDisplayedWordToCurrentWord();
+    await saveCurrentWord().then((response) => response.text())
+        .then((newId) => setCurrentWord({...currentWord, id: newId}))
 }
 
-export async function getWord(wordId, focus) {
+export async function getWord(wordId, focus, dontSaveCurrentWord) {
 
-    await saveCurrentWord()
+    if (dontSaveCurrentWord !== true){
+        await saveCurrentWord()
+    }
 
     setCurrentFocus(focus)
 
@@ -118,7 +121,8 @@ export function edit(divId) {
 
         if (divId.includes("sentence") || divId.includes("translation")) {
             if (div.textContent === "") {
-                editedCurrentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)
+                let removed = editedCurrentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)[0]
+                deleteSentence(removed.id)
             } else {
                 editedCurrentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = inlinedEdition
             }
@@ -144,6 +148,7 @@ export function edit(divId) {
     });
 }
 
+
 export function switchNoKanjiMode(value) {
     if (value==="0" || value==="1")
         setCurrentWord({...currentWord, useReading: value})
@@ -160,7 +165,7 @@ export function switchNoKanjiMode(value) {
 }
 
 export function addNewSentence() {
-    let newSentence = {id: undefined, japanese:"", translation:""}
+    let newSentence = {japanese:"", translation:""}
     if ((currentWord?.sentences??[]).length === 0) {
         setCurrentWord({...currentWord, sentences: [newSentence]})
     } else {
@@ -191,4 +196,19 @@ export async function addWord() {
     switchWordListVisibility(false);
 }
 
+export async function deleteCurrentWord() {
+    await fetch(
+        HOST + "/word/" + currentWord.id,
+        {   method: "DELETE",
+            headers: { "Content-type": "application/json; charset=UTF-8" }
+        }).catch(error => alert(error))
+        .then(() => getWord(undefined, undefined, true));
+}
 
+export function deleteSentence(sentenceId) {
+    fetch(
+        HOST + "/word/sentence/" + sentenceId,
+        {   method: "DELETE",
+            headers: { "Content-type": "application/json; charset=UTF-8" }
+        }).catch(error => alert(error))
+}

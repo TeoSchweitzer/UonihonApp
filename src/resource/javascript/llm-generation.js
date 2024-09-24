@@ -47,7 +47,7 @@ export function getTextFromLlm(prompt, model, strict, doWithResult) {
     }
 }
 
-export function recursiveSentenceMaker() {
+export function recursiveSentenceMaker(attemptsLeft) {
     getTextFromLlm(sentencePrompt(currentWord.word, currentWord.sentences), MEDIUM_MODEL, false, (result) => {
         if ((currentWord?.sentences??[]).length === 0) {
             setCurrentWord({...currentWord, sentences:  []})
@@ -56,20 +56,31 @@ export function recursiveSentenceMaker() {
         try {
             parsed = JSON.parse(result);
         } catch(e) {
+            if (attemptsLeft === undefined) attemptsLeft = 4
+            if (attemptsLeft === 0) return
+            attemptsLeft -= 1
             return recursiveSentenceMaker();
         }
         if (!parsed.japanese || !parsed.translation || !parsed.japanese.includes(currentWord.word) || parsed.translation === "") {
-            return recursiveSentenceMaker();
+            if (attemptsLeft === undefined) attemptsLeft = 4
+            if (attemptsLeft === 0) return
+            attemptsLeft -= 1
+            return recursiveSentenceMaker(attemptsLeft);
         }
         let currentSentences = currentWord.sentences
+        let freeSpotFound = false
         for (let i = 0; i < currentSentences.length; i++) {
             if (currentSentences[i].japanese === "" && currentSentences[i].translation === "") {
+                freeSpotFound = true
                 currentSentences[i] = parsed;
                 setCurrentWord({...currentWord, sentences: currentSentences})
-                setDisplayedWordToCurrentWord('sentences');
                 break;
             }
         }
+        if (freeSpotFound === false && currentSentences.length === 0) {
+            setCurrentWord({...currentWord, sentences: [parsed]})
+        }
+        setDisplayedWordToCurrentWord('sentences');
     });
 }
 

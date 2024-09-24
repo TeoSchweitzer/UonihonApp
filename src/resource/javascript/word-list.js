@@ -1,5 +1,5 @@
 import {addListener} from "./listeners.js";
-import {getWord} from "./logic.js";
+import {getWord, saveCurrentWord} from "./logic.js";
 import {wordsList, setWordsList, setFilteredWordsList, setCurrentFocus} from "./state.js";
 import {HOST} from "./constants.js";
 import {refreshObfuscation} from "./display_management.js";
@@ -49,7 +49,8 @@ export function setWordList(wordList) {
     });
 }
 
-export function startSearchingInWordList() {
+export async function startSearchingInWordList() {
+    await saveCurrentWord();
     switchWordListVisibility(true)
     setCurrentFocus(undefined)
     refreshObfuscation();

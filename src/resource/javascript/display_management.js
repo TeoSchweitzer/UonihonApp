@@ -21,6 +21,8 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
         if (currentWord.isDico === "1") { dictionary[i].classList.remove("hidden") }
         else { dictionary[i].classList.add("hidden") }
     }
+    document.getElementById("cancel-deletion-button").style.visibility = "collapse"
+    document.getElementById("confirm-deletion-button").style.visibility = "collapse"
 
     let sentencesNode = document.getElementById('sentences-container');
     sentencesNode.replaceChildren();
@@ -87,10 +89,7 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
             document.getElementById('explainer').innerText = result;
         });
     }
-    if (((currentWord.sentences??[])?.length??0) === 0) {
-        setCurrentWord({...currentWord, sentences:  [{japanese:"",translation:""}]})
-    }
-    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="sentences") && currentWord.sentences.some(s => s.japanese === "" && s.translation === "")) {
+    if ((useLlmOnlyOn === undefined || useLlmOnlyOn==="sentences") && (((currentWord.sentences??[].length) === 0) || (currentWord.sentences.some(s => s.japanese === "" && s.translation === "")))) {
         recursiveSentenceMaker()
     }
 }
