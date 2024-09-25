@@ -5,6 +5,46 @@ import random
 from helpers import util
 from helpers.util import get_valid_new_id, modify_file, get_file_content_as_arrays
 
+def get_word_from_files(word_id, focus):
+    custom_words_list_splitted = get_file_content_as_arrays(util.WORDS_PATH)
+    dictionary_list_splitted = get_file_content_as_arrays(util.DICTIONARY_PATH)
+    usage_list_splitted = get_file_content_as_arrays(util.USAGE_PATH)
+    sentences_list_splitted = get_file_content_as_arrays(util.SENTENCES_PATH)
+
+    usage_file_upkeep(custom_words_list_splitted, usage_list_splitted)
+
+    if word_id == "fromScore":
+        chosen_word_id = choose_word(custom_words_list_splitted, usage_list_splitted, dictionary_list_splitted, focus)
+    else:
+        chosen_word_id = word_id.strip()
+
+    chosen_word = next(filter(lambda v: v[0] == chosen_word_id, custom_words_list_splitted + dictionary_list_splitted),
+                       None)
+    if chosen_word is None:
+        return "Word with id" + chosen_word_id + " not found"
+
+    chosen_sentences = [sentence for sentence in sentences_list_splitted if (chosen_word[1] in sentence[1])]
+    if len(chosen_sentences) > 5:
+        chosen_sentences = random.sample(chosen_sentences, 5)
+
+    result = {
+        'id': chosen_word[0],
+        'isDico': "1" if int(chosen_word[0]) < 100000 else "0",
+        'word': chosen_word[1],
+        'reading': chosen_word[2],
+        'meaning': chosen_word[3],
+        'alternative': chosen_word[4],
+        'explainer': chosen_word[5],
+        'sentences': [{
+            'id': sentence[0],
+            'japanese': sentence[1],
+            'translation': sentence[2]
+        } for sentence in chosen_sentences]
+    }
+
+    word_usage = parse_word_usage_for_given_focus(chosen_word_id, usage_list_splitted, focus)
+    return result | word_usage
+
 
 def choose_word(word_array, usage_array, dictionary_array, focus="no-focus"):
 
@@ -44,6 +84,7 @@ def calculate_score(word_data, current_time):
     score = (time_factor * 0.5) + (familiarity_factor * 0.3) + (frequency_factor * 0.2)
 
     return score
+
 
 
 def parse_word_usage_for_given_focus(word_id, usage_list_splitted, focus):
@@ -139,25 +180,15 @@ def save_word_usage(word, focus):
         for line in old_file:
             splitted = list(map(lambda v: v.strip(), line.split('|')))
             if splitted[0].strip() == word.get("id"):
-                new_line_as_array = [word["id"], word["useReading"]]
+                new_line_as_array = [word["id"], word["useReading"], splitted[2], splitted[3], splitted[4], splitted[5], splitted[6], splitted[7]]
                 if focus == "reading":
-                    new_line_as_array.extend([
-                        word["familiarity"],
-                        splitted[3],
-                        word["testAmount"],
-                        splitted[5],
-                        now,
-                        splitted[7]
-                    ])
+                    new_line_as_array[2] = word["familiarity"]
+                    new_line_as_array[4] = word["testAmount"]
+                    new_line_as_array[6] = now
                 if focus == "writing":
-                    new_line_as_array.extend([
-                        splitted[2],
-                        word["familiarity"],
-                        splitted[4],
-                        word["testAmount"],
-                        splitted[6],
-                        now
-                    ])
+                    new_line_as_array[3] = word["familiarity"]
+                    new_line_as_array[5] = word["testAmount"]
+                    new_line_as_array[7] = now
                 new_file.write(' | '.join(new_line_as_array) + '\n')
             else:
                 new_file.write(line)
@@ -191,18 +222,17 @@ def usage_file_upkeep(custom_words_lines, usage_lines):
 
 
 def create_custom_word(word_to_save):
-    new_id = save_word_content(word_to_save)
+    new_word_id = save_word_content(word_to_save)
     usage_file_upkeep(get_file_content_as_arrays(util.WORDS_PATH), get_file_content_as_arrays(util.USAGE_PATH))
-    return new_id
+    return get_word_from_files(new_word_id, "no-focus")
 
 
 def update_custom_word(word_id, word_to_save, focus="no_focus"):
     if int(word_id) < 100000:
         return str(-1)
-    save_word_content(word_to_save)
-    if focus != "no_focus":
-        save_word_usage(word_to_save, focus)
-    return word_id
+    updated_word_id = save_word_content(word_to_save)
+    save_word_usage(word_to_save, focus)
+    return get_word_from_files(updated_word_id, focus)
 
 
 def delete_custom_word(word_id):

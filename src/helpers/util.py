@@ -29,7 +29,7 @@ def modify_file(file_path, edition_function=(lambda x,y:x)):
 def get_file_content_as_arrays(file_path):
     with open(file_path, 'r', encoding="utf-8") as wordsFile:
         file_content = wordsFile.read().splitlines()
-    return list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), file_content))
+    return list(filter(lambda v: len(v)>0, list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), file_content))))
 
 WORDS_PATH = resource('data/words/words.txt')
 DICTIONARY_PATH = resource('data/words/dictionary.txt')

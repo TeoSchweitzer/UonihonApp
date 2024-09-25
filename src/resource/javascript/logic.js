@@ -13,8 +13,7 @@ import {reveal, setDisplayedWordToCurrentWord} from "./display_management.js";
 export async function copyDicoWordToCustom() {
     setCurrentWord({...currentWord, id: undefined, isDico: "0"});
     setDisplayedWordToCurrentWord();
-    await saveCurrentWord().then((response) => response.text())
-        .then((newId) => setCurrentWord({...currentWord, id: newId}))
+    await saveCurrentWord()
 }
 
 export async function getWord(wordId, focus, dontSaveCurrentWord) {
@@ -70,7 +69,11 @@ export function saveCurrentWord() {
             keepalive: true,
             headers: { "Content-type": "application/json; charset=UTF-8" },
             body: JSON.stringify(currentWord)
-        }).catch(error => alert(error));
+        }).catch(error => alert(error))
+        .then((response) => response.json())
+        .then((json) => {
+            setCurrentWord({...json})
+        });
 }
 
 export function obfuscateOrEdit(event, id) {
@@ -90,7 +93,9 @@ export function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfD
 
 export function edit(divId) {
 
-    if ((divId==="familiarity" && currentFocus === undefined) || currentWord.isDico === "1") {
+    if ((divId==="familiarity" && currentFocus === undefined) ||
+        currentWord.isDico === "1" ||
+        (currentWord.useReading === "1" && divId === "word")) {
         return
     }
 
@@ -153,13 +158,13 @@ export function switchNoKanjiMode(value) {
     if (value==="0" || value==="1")
         setCurrentWord({...currentWord, useReading: value})
     else
-        setCurrentWord({...currentWord, useReading: (currentWord.useReading === "0") ? "1" : "0"})
+        setCurrentWord({...currentWord, useReading: (currentWord.useReading === "1") ? "0" : "1"})
 
     const isNoKanji = currentWord.useReading !== "0"
     document.getElementById("no-kanji-checkbox").checked = isNoKanji
     let wordNode = document.getElementById('word')
     wordNode.innerText = isNoKanji ? currentWord.reading : currentWord.word
-    wordNode.classList.remove("kanji", "kana")
+    wordNode.classList.remove("kanji-text", "kana-text")
     wordNode.classList.add(isNoKanji ? "kana-text" : "kanji-text")
     document.getElementById("no-kanji-label").style.visibility = isNoKanji ? 'visible' : 'collapse'
 }
