@@ -351,3 +351,28 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   }
 
 }
+
+
+.loader {
+  position:fixed;
+  bottom: 74px;
+  left: 0;
+  z-index: 99999;
+}
+.loader .loaderBar {
+  border: @white 2px solid;
+  position:absolute;
+  background:@black;
+  padding: 10px;
+}
+.animate {
+  animation:borealisBar 0.1s linear;
+}
+@keyframes borealisBar {
+  0% {
+    left:0;
+  }
+  100% {
+    left:0;
+  }
+}

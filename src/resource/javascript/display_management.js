@@ -8,7 +8,7 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
     document.getElementById('word').innerText        = currentWord.word ?? "";
     document.getElementById('reading').innerText     = currentWord.reading ?? "";
     document.getElementById('meaning').innerText     = currentWord.meaning ?? "";
-    document.getElementById('alternative').innerText = currentWord.alternative ?? "";
+    document.getElementById('alternative').innerText = currentWord.alternative?.replace(/\\n/g, "\n") ?? "";
     document.getElementById('explainer').innerText   = (currentWord.explainer?.replace(/\\n/g, "\n")) ?? "";
 
     let editable = document.getElementsByClassName('editable')
@@ -177,5 +177,15 @@ export function refreshObfuscation() {
         if (currentFocus === "writing") {
             document.getElementById('sentence'+(i+1)).classList.add("obfuscated")
         }
+    }
+}
+
+export function manageLoadingBar(barShouldBeVisible) {
+    let bar = document.getElementById("loading-bar")
+    if (barShouldBeVisible && bar.classList.contains("hidden")) {
+        bar.classList.remove("hidden")
+    }
+    if (!barShouldBeVisible && !bar.classList.contains("hidden")) {
+        bar.classList.add("hidden")
     }
 }

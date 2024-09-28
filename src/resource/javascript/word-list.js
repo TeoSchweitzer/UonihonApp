@@ -1,16 +1,26 @@
 import {addListener} from "./listeners.js";
 import {getWord, saveCurrentWord} from "./logic.js";
-import {wordsList, setWordsList, setFilteredWordsList, setCurrentFocus} from "./state.js";
+import {
+    wordsList,
+    setWordsList,
+    setFilteredWordsList,
+    setCurrentFocus,
+    startedLoading,
+    finishedLoading
+} from "./state.js";
 import {HOST} from "./constants.js";
 import {refreshObfuscation} from "./display_management.js";
 
-export function getAllWords() {
+export async function getAllWords() {
+    await startedLoading()
     return fetch(HOST + "/word/all", {
-        method: "GET", headers: { "Content-type": "application/json; charset=UTF-8" }
+        method: "GET", headers: {"Content-type": "application/json; charset=UTF-8"}
     }).then((response) => response.text()).then((response) => {
         setWordsList(response)
         setFilteredWordsList(response);
-    }).catch(error => alert(error));
+    })
+        .catch(error => alert(error))
+        .finally(() => finishedLoading());
 }
 
 export function switchWordListVisibility(goToWordList) {
@@ -20,29 +30,29 @@ export function switchWordListVisibility(goToWordList) {
     if ((goToWordList??true) && listNode.style.display === 'none') {
         listNode.style.display = 'block'
         testNode.style.display = 'none';
-        searchBarNode.addEventListener('input', filterWords);
-        getAllWords().then(() => setWordList(wordsList))
+        searchBarNode.addEventListener('keydown', filterWords);
+        getAllWords().then(() => makeWordTables())
     } else {
-        searchBarNode.removeEventListener('input', filterWords)
+        searchBarNode.removeEventListener('keydown', filterWords)
         listNode.style.display = 'none';
         testNode.style.display = 'grid';
     }
 }
 
-export function setWordList(wordList) {
+export function makeWordTables(filter) {
     let listTableNode = document.querySelector('#word-list-table');
     let dictionaryTableNode = document.querySelector('#dictionary-list-table');
     listTableNode.replaceChildren();
     dictionaryTableNode.replaceChildren();
-    wordList.split('\n').forEach(function (wordLine, i) {
-        if (wordLine === "") return
+    wordsList.split('\n').forEach(function (wordLine, i) {
+        if (wordLine === "" || (filter && !((wordLine.toUpperCase()).includes((filter.toUpperCase()??""))))) return
         let splittedLine = wordLine.split('|')
         let htmlSentence = `
                 <tr id="wordListIdx${i + 1}">
                     <td>${splittedLine[1]}</td>
                     <td>${splittedLine[2]}</td>
                     <td>${splittedLine[3]}</td>
-                    <td>${splittedLine[4]}</td>
+                    <td>${splittedLine[4].split('\\n')[0]}</td>
                 </tr>`;
         ((parseInt(splittedLine[0]) > 100000) ? listTableNode : dictionaryTableNode).insertAdjacentHTML('beforeend', htmlSentence);
         addListener(`wordListIdx${i + 1}`, async ()=> await getWord(`${splittedLine[0].trim()}`));
@@ -60,11 +70,17 @@ export async function startSearchingInWordList() {
     searchBarInputNode.focus();
 }
 
-export function filterWords(event) {
-    setWordList(
-        (wordsList
-            .split('\n')
-            .filter(w => w.toUpperCase().includes((event.target?.value?.toUpperCase()??"")))
-        ).join('\n')
-    )
+export async function filterWords(event) {
+    if (event.key !== "Enter") return
+    let bar = document.getElementById("loading-bar")
+    function filtering() {
+        bar.removeEventListener('animationend', filtering)
+        bar.classList.remove('animate');
+        makeWordTables(event.target?.value)
+        finishedLoading()
+    }
+    bar.addEventListener('animationend', filtering);
+    startedLoading()
+    bar.classList.add('animate');
+
 }

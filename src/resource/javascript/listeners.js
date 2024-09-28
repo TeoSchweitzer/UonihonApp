@@ -10,7 +10,7 @@ import {
 } from "./logic.js";
 import {startSearchingInWordList} from "./word-list.js";
 import {setVisibleMainTab, showDeletionConfirmation, switchTabsVisibility} from "./display_management.js";
-import {currentWord} from "./state.js";
+import {currentWord, loadingCounter} from "./state.js";
 
 window.onload = async function() {
     await getWord()

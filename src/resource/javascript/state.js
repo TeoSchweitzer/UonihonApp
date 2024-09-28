@@ -1,4 +1,5 @@
 import {KEY_1, KEY_2, KEY_3, KEY_4} from "./constants.js";
+import {manageLoadingBar} from "./display_management.js";
 
 export let currentWord;
 export let setCurrentWord = (newValue) => currentWord = newValue;
@@ -6,6 +7,15 @@ export let setCurrentWord = (newValue) => currentWord = newValue;
 export let currentFocus;
 export let setCurrentFocus = (newValue) => currentFocus = newValue;
 
+export let loadingCounter = 0;
+export let startedLoading = () => {
+    loadingCounter++;
+    manageLoadingBar(loadingCounter > 0)
+}
+export let finishedLoading = () => {
+    loadingCounter--;
+    manageLoadingBar(loadingCounter > 0)
+}
 
 export let wordsList;
 export let setWordsList = (newValue) => wordsList = newValue;
