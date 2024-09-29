@@ -9,11 +9,14 @@ from model.words_service import choose_word, parse_word_usage_for_given_focus, \
     get_word_from_files
 
 
-@route('/word/all', method='GET')
-def get_list_of_custom_and_dico_words():
+@route('/word/search', method='GET')
+@route('/word/search/<search_term>', method='GET')
+def get_words_that_match_search(search_term=None):
+    if search_term is None:
+        return json.dumps([])
     full_list = get_file_content_as_arrays(util.WORDS_PATH) + get_file_content_as_arrays(util.DICTIONARY_PATH)
     full_list = ['|'.join(word[:-1]) for word in full_list]
-    return '\n'.join(full_list)
+    return json.dumps([elem for elem in full_list if search_term.upper() in elem.upper()])
 
 
 @route('/word', method='GET')

@@ -31,6 +31,7 @@ def get_file_content_as_arrays(file_path):
         file_content = wordsFile.read().splitlines()
     return list(filter(lambda v: len(v)>0, list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), file_content))))
 
+
 WORDS_PATH = resource('data/words/words.txt')
 DICTIONARY_PATH = resource('data/words/dictionary.txt')
 SENTENCES_PATH = resource('data/words/sentences.txt')

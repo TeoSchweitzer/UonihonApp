@@ -11,11 +11,11 @@ import {
 import {HOST} from "./constants.js";
 import {refreshObfuscation} from "./display_management.js";
 
-export async function getAllWords() {
+export async function getAllWords(searchTerm) {
     await startedLoading()
-    return fetch(HOST + "/word/all", {
+    return fetch(HOST + "/word/search" + (searchTerm ? "/"+searchTerm:  ""), {
         method: "GET", headers: {"Content-type": "application/json; charset=UTF-8"}
-    }).then((response) => response.text()).then((response) => {
+    }).then((response) => response.json()).then((response) => {
         setWordsList(response)
         setFilteredWordsList(response);
     })
@@ -39,13 +39,13 @@ export function switchWordListVisibility(goToWordList) {
     }
 }
 
-export function makeWordTables(filter) {
+export function makeWordTables() {
     let listTableNode = document.querySelector('#word-list-table');
     let dictionaryTableNode = document.querySelector('#dictionary-list-table');
     listTableNode.replaceChildren();
     dictionaryTableNode.replaceChildren();
-    wordsList.split('\n').forEach(function (wordLine, i) {
-        if (wordLine === "" || (filter && !((wordLine.toUpperCase()).includes((filter.toUpperCase()??""))))) return
+    wordsList.forEach(function (wordLine, i) {
+        if (wordLine === "") return
         let splittedLine = wordLine.split('|')
         let htmlSentence = `
                 <tr id="wordListIdx${i + 1}">
@@ -76,8 +76,9 @@ export async function filterWords(event) {
     function filtering() {
         bar.removeEventListener('animationend', filtering)
         bar.classList.remove('animate');
-        makeWordTables(event.target?.value)
-        finishedLoading()
+        getAllWords(event.target?.value)
+            .then(() => makeWordTables(event.target?.value))
+            .finally(() => finishedLoading())
     }
     bar.addEventListener('animationend', filtering);
     startedLoading()
