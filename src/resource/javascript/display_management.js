@@ -47,21 +47,14 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
         return
     }
 
-    document.getElementById('familiarity').innerText = currentWord.familiarity ?? "";
+    document.getElementById('readingFamiliarity').innerText = currentWord.readingFamiliarity ?? "";
+    document.getElementById('writingFamiliarity').innerText = currentWord.writingFamiliarity ?? "";
     document.getElementById('amount-seen-value').innerText = currentWord.testAmount ?? "";
-    document.getElementById('date-last-seen-value').innerText =
-        ((currentWord.lastTestDate??"") === "") ? "" : DATE_FORMAT.format(Date.parse(currentWord.lastTestDate));
+    let parsedLastDate = ((currentWord.lastTestDate??"") === "") ? "" : DATE_FORMAT.format(Date.parse(currentWord.lastTestDate))
+    if (parsedLastDate === "01/01/2000 00:00") parsedLastDate = "Jamais"
+    document.getElementById('date-last-seen-value').innerText = parsedLastDate;
 
     switchNoKanjiMode(currentWord.useReading)
-
-    if (currentFocus===undefined) {
-        document.getElementById('familiarity-choice-button').style.backgroundColor = 'transparent'
-        document.getElementById('familiarity-hint').style.display = 'block'
-    }
-    else {
-        document.getElementById('familiarity-choice-button').style = undefined
-        document.getElementById('familiarity-hint').style.display = 'none'
-    }
 
     refreshObfuscation();
 
@@ -123,6 +116,7 @@ export function showDeletionConfirmation() {
 
 export function setVisibleMainTab(tab) {
     alert("Pas implémenté !")
+    return
     let kanaTabNode = document.querySelector('.kanaTab');
     let kanjiTabNode = document.querySelector('.kanjiTab');
     let vocabularyTabNode = document.querySelector('.vocabularyTab');

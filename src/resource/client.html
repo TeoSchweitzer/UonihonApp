@@ -38,10 +38,16 @@
                     <div class="line4 line  editable"> </div>
 
                     <div id="word-obfuscation-card" class="word obfuscation-container">
-                        <div class="label">Mot <span id="no-kanji-label">(Prononciation)</span></div>
-                        <div id='word' class="card big-font kanji-text">
+                        <div class="label">
+                            Mot
+                            <span id="no-kanji-label">(Prononciation)</span>
+                        </div>
+                        <div id='word' class="card big-font kanji-text"></div>
+                        <div id="pronunciation-mode-button" class="show-reading-button">
+                            <img src="asset/HiraganaKa.png" class="kana-icon" alt="kana"/>
                         </div>
                     </div>
+
                     <div id="reading-obfuscation-card" class="reading obfuscation-container">
                         <div class="label">Prononciation</div>
                         <div id="reading" class="card kana-text big-font"></div>
@@ -71,15 +77,16 @@
                         <span class="small">Ajouter une phrase</span>
                     </div>
 
-                    <div id="pronunciation-mode-button" class="noKanji card even-padding editable">
-                        <input type="checkbox" autocomplete="off" id="no-kanji-checkbox" class="checkbox-style">
-                        <span class="checkbox-label">Mode Prononciation</span>
+                    <div class="familiarityTitle sub-footer editable">Familiarité :</div>
+
+                    <div id="reading-familiarity-choice-button" class="readingFamiliarityDisplay card even-padding editable">
+                        Lire :&nbsp
+                        <span id="readingFamiliarity"></span><br/>
                     </div>
 
-                    <div id="familiarity-choice-button" class="familiarityDisplay card even-padding editable">
-                        Familiarité :&nbsp
-                        <span id="familiarity"></span><br/>
-                        <div id="familiarity-hint" class="familiarity-hint">(moyenne entre Lire et Dire)</div>
+                    <div id="writing-familiarity-choice-button" class="writingFamiliarityDisplay card even-padding editable">
+                        Dire :&nbsp
+                        <span id="writingFamiliarity"></span><br/>
                     </div>
 
                     <div class="moreInfo sub-footer editable">

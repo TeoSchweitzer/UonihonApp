@@ -94,21 +94,19 @@ def parse_word_usage_for_given_focus(word_id, usage_list_splitted, focus):
     # id|use_reading|reading_familiarity|writing_familiarity|amount_read|amount_write|last_read|last_write
     match focus:
         case "reading":
-            familiarity = word[2].strip()
             test_amount = word[4].strip()
             last_test_date = word[6].strip()
         case "writing":
-            familiarity = word[3].strip()
             test_amount = word[5].strip()
             last_test_date = word[7].strip()
         case _:
-            familiarity = str(int((int(word[2].strip()) + int(word[3].strip())) / 2))
             test_amount = str(int(word[4].strip()) + int(word[5].strip()))
             last_test_date = datetime.datetime.isoformat(
                 max(datetime.datetime.fromisoformat(word[6].strip()), datetime.datetime.fromisoformat(word[7].strip())))
     return {
         "useReading": word[1].strip(),
-        "familiarity": familiarity,
+        "readingFamiliarity": word[2].strip(),
+        "writingFamiliarity": word[3].strip(),
         "testAmount": test_amount,
         "lastTestDate": last_test_date
     }
@@ -180,13 +178,11 @@ def save_word_usage(word, focus):
         for line in old_file:
             splitted = list(map(lambda v: v.strip(), line.split('|')))
             if splitted[0].strip() == word.get("id"):
-                new_line_as_array = [word["id"], word["useReading"], splitted[2], splitted[3], splitted[4], splitted[5], splitted[6], splitted[7]]
+                new_line_as_array = [word["id"], word["useReading"], word["readingFamiliarity"], word["writingFamiliarity"], splitted[4], splitted[5], splitted[6], splitted[7]]
                 if focus == "reading":
-                    new_line_as_array[2] = word["familiarity"]
                     new_line_as_array[4] = word["testAmount"]
                     new_line_as_array[6] = now
                 if focus == "writing":
-                    new_line_as_array[3] = word["familiarity"]
                     new_line_as_array[5] = word["testAmount"]
                     new_line_as_array[7] = now
                 new_file.write(' | '.join(new_line_as_array) + '\n')

@@ -35,8 +35,11 @@ addListener('explainer-obfuscation-card', (event) => obfuscateOrEdit(event, 'exp
 addListener('sentences-adder-button', addNewSentence);
 
 addListener('pronunciation-mode-button', switchNoKanjiMode);
-addListener('familiarity-choice-button', (event) =>
-    simpleOrDoubleClickHandler(event, null, () => edit('familiarity'))
+addListener('reading-familiarity-choice-button', (event) =>
+    simpleOrDoubleClickHandler(event, null, () => edit('readingFamiliarity'))
+);
+addListener('writing-familiarity-choice-button', (event) =>
+    simpleOrDoubleClickHandler(event, null, () => edit('writingFamiliarity'))
 );
 addListener('deletion-menu-button', showDeletionConfirmation);
 addListener('cancel-deletion-button', showDeletionConfirmation);

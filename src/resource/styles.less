@@ -89,7 +89,8 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
               'linec linec linec linec'
               'sentenceAdd sentenceAdd sentenceAdd sentenceAdd'
               'linez linez linez linez'
-              'noKanji   noKanji   familiarity familiarity'
+              'familiarityTitle familiarityTitle familiarityTitle familiarityTitle'
+              'readingFamiliarityDisplay readingFamiliarityDisplay writingFamiliarityDisplay writingFamiliarityDisplay'
               'moreInfo  moreInfo  moreInfo    moreInfo'
               'lined lined lined lined'
               'unlocked  unlocked  unlocked  unlocked'
@@ -107,9 +108,10 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
             .explainer { grid-area: explainer;}
             .sentences { grid-area: sentences;}
             .sentenceAdd { grid-area: sentenceAdd; display: flex;}
-            .noKanji { grid-area: noKanji;}
-            .familiarityDisplay { grid-area: familiarity;}
-            .moreInfo { grid-area: moreInfo; font-size: 28px; font-style: italic; color: darken(@white, 20%);}
+            .familiarityTitle {grid-area: familiarityTitle;}
+            .readingFamiliarityDisplay { grid-area: readingFamiliarityDisplay;}
+            .writingFamiliarityDisplay { grid-area: writingFamiliarityDisplay;}
+            .moreInfo { grid-area: moreInfo;}
             .unlocked { grid-area: unlocked;}
             .delete { grid-area: delete; background-color: lighten(@caution, 18%);}
             .nothing { grid-area: nothing;}
@@ -185,6 +187,12 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
 
 }
 
+.sub-footer {
+  font-size: 28px;
+  font-style: italic;
+  color: darken(@white, 15%);
+}
+
 .wordInput { display: flex;}
 
 .line {
@@ -232,12 +240,6 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   &.unbound-height {
     min-height: 0;
   }
-  .familiarity-hint {
-    position: absolute; 
-    bottom: 8px;
-    left: 100px;
-    font-size: 20px;
-  }
 }
 
 .big-font {
@@ -271,6 +273,22 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
   
 }
 
+.show-reading-button {
+  width: 47px;
+  height: 47px;
+  background-color: @current-tab-color;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  border-radius: 5px;
+  padding: 3px 0 3px 5px;
+  .kana-icon {
+    width: 45px;
+    height: 45px;
+    filter: @white-filter;
+  }
+}
+
 .icon {
   width: 60px;
   height: 60px;
@@ -283,12 +301,6 @@ body,html { margin: 0; box-sizing: border-box; background-color: lighten(@curren
     margin: 0;
   }
 
-}
-
-.checkbox-style {
-  transform: scale(2.3);
-  vertical-align: middle;
-  margin: 0 12px 8px 0;
 }
 
 .word-search-input {

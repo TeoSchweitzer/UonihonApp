@@ -39,7 +39,6 @@ export async function getWord(wordId, focus, dontSaveCurrentWord) {
         .then((response) => response.json())
         .then((json) => {
 
-
             setCurrentWord({...json})
 
             setDisplayedWordToCurrentWord()
@@ -52,9 +51,12 @@ export function saveCurrentWord() {
         return
     }
     if (currentFocus === "reading" || currentFocus === "writing") {
+        let readingBonus = currentFocus === "reading" ? 1 : 0
+        let writingBonus = currentFocus === "writing" ? 1 : 0
         setCurrentWord({
             ...currentWord,
-            familiarity: (parseInt(currentWord.familiarity)+1) + "",
+            readingFamiliarity: (parseInt(currentWord.readingFamiliarity)+readingBonus) + "",
+            writingFamiliarity: (parseInt(currentWord.writingFamiliarity)+writingBonus) + "",
             testAmount: (parseInt(currentWord.testAmount)+1) + ""
         })
     }
@@ -93,8 +95,7 @@ export function simpleOrDoubleClickHandler(event, toCallIfSimpleClick, toCallIfD
 
 export function edit(divId) {
 
-    if ((divId==="familiarity" && currentFocus === undefined) ||
-        currentWord.isDico === "1" ||
+    if (currentWord.isDico === "1" ||
         (currentWord.useReading === "1" && divId === "word")) {
         return
     }
@@ -132,9 +133,9 @@ export function edit(divId) {
                 editedCurrentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = inlinedEdition
             }
         }
-        else if (divId === "familiarity") {
+        else if (divId.includes("Familiarity")) {
             if (div.textContent !== "" && /^\d+$/.test(inlinedEdition)) {
-                editedCurrentWord["familiarity"] = inlinedEdition;
+                editedCurrentWord[divId] = inlinedEdition;
             }
         }
         else if (divId === "word") {
@@ -161,7 +162,6 @@ export function switchNoKanjiMode(value) {
         setCurrentWord({...currentWord, useReading: (currentWord.useReading === "1") ? "0" : "1"})
 
     const isNoKanji = currentWord.useReading !== "0"
-    document.getElementById("no-kanji-checkbox").checked = isNoKanji
     let wordNode = document.getElementById('word')
     wordNode.innerText = isNoKanji ? currentWord.reading : currentWord.word
     wordNode.classList.remove("kanji-text", "kana-text")
@@ -192,7 +192,8 @@ export async function addWord() {
         explainer: "",
         unlocked: "1",
         useReading: "0",
-        familiarity: "0",
+        readingFamiliarity: "0",
+        writingFamiliarity: "0",
         testAmount: "0",
         lastTestDate: new Date().toISOString(),
         sentences: [{id: undefined, japanese:"",translation:""}],
