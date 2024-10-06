@@ -7,6 +7,10 @@ def resource(given_path):
     return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/../resource/' + given_path)
 
 
+def user_saved_data(given_path):
+    return os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + '/../../user_data/' + given_path)
+
+
 def get_valid_new_id(id_list, base_id=100001):
     id_to_use = base_id
     while str(id_to_use) in id_list:
@@ -32,7 +36,7 @@ def get_file_content_as_arrays(file_path):
     return list(filter(lambda v: len(v)>0, list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), file_content))))
 
 
-WORDS_PATH = resource('data/words/words.txt')
-DICTIONARY_PATH = resource('data/words/dictionary.txt')
-SENTENCES_PATH = resource('data/words/sentences.txt')
-USAGE_PATH = resource('data/words/usage.txt')
+DICTIONARY_PATH = resource('data/dictionary.txt')
+WORDS_PATH = user_saved_data('words.txt')
+SENTENCES_PATH = user_saved_data('sentences.txt')
+USAGE_PATH = user_saved_data('usage.txt')

@@ -414,7 +414,7 @@
 100415 | 見ます | みます | regarder | |
 100416 | 飲みます | のみます | boire  | prendre (un médicament) |
 100417 | どうが | どうが | vidéo | |
-100418 | 話します | はなします | parler | |
+100418 | 話します | はなします | parler |  | "話します" est un verbe japonais qui signifie "parler". Il est utilisé pour exprimer l'action de communiquer avec quelqu'un en utilisant des mots ou des sons. C'est un mot très courant qui peut être utilisé dans de nombreux contextes de la vie quotidienne.
 100419 | テニス | テニス | tennis | |
 100420 | でかけます | でかけます | sortir/partir | |
 100421 | ゲーム | ゲーム | jeu vidéo | |
