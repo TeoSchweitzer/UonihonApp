@@ -52,39 +52,31 @@ def choose_word(word_array, usage_array, dictionary_array, focus="no-focus"):
         return random.choice(dictionary_array)[0]
 
     r = (focus == 'reading')
-    simplified_list = map(lambda v: [v[0], v[2 if r else 3], v[4 if r else 5], v[6 if r else 7]], usage_array)
-
-    # Calculate scores for all words
     current_time = datetime.datetime.now()
-    scored_words = [(word[0], calculate_score(word[1:], current_time)) for word in simplified_list]
+    least_familiar = (0, math.inf)
+    least_amount = (0, math.inf)
+    least_recent = (0, current_time)
+    amount_tested_today = 0
 
-    # Select the word with the highest score
-    selected_word_id = max(scored_words, key=lambda v: v[1])[0]
+    for usage in usage_array:
+        identifier, familiarity = usage[0], usage[2 if r else 3]
+        amount, date = usage[4 if r else 5], datetime.datetime.fromisoformat(usage[6 if r else 7])
+        if date.date() == current_time.date():
+            amount_tested_today += 1
+        else:
+            if familiarity < least_familiar[1]:
+                least_familiar = (identifier, familiarity)
+            if amount < least_amount[1]:
+                least_amount = (identifier, amount)
+            if date < least_recent[1]:
+                least_recent = (identifier, date)
 
-    return selected_word_id
+    if amount_tested_today % 4 == 1:
+        return least_amount[0]
+    if amount_tested_today % 4 == 3:
+        return least_recent[0]
 
-
-def calculate_score(word_data, current_time):
-    familiarity, times_tested, last_test_str = word_data
-    familiarity = int(familiarity)
-    times_tested = int(times_tested)
-    last_test = datetime.datetime.fromisoformat(last_test_str)
-
-    # Time factor: more points for words not tested recently
-    time_diff = (current_time - last_test).total_seconds() / 3600  # hours
-    time_factor = math.log(time_diff + 1)  # log scale to prevent extreme values
-
-    # Familiarity factor: more points for less familiar words
-    familiarity_factor = 1 / (familiarity + 1)  # +1 to avoid division by zero
-
-    # Test frequency factor: slightly more points for less tested words
-    frequency_factor = 1 / math.sqrt(times_tested + 1)  # square root to reduce impact
-
-    # Combine factors. You can adjust weights here.
-    score = (time_factor * 0.5) + (familiarity_factor * 0.3) + (frequency_factor * 0.2)
-
-    return score
-
+    return least_familiar[0]
 
 
 def parse_word_usage_for_given_focus(word_id, usage_list_splitted, focus):
