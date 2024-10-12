@@ -1550,7 +1550,7 @@
 1550 | 車両は大きいですね。 | This vehicle is big.
 1551 | 車両はトンネルに入った。 | The vehicle entered the tunnel.
 1552 | 前の車両は一号車です。 | The vehicle ahead is the car No. 1.
-1553 | これで安心です。 | That’s a relief.
+1553 | これで安心です。 | That’s a relief!
 1554 | 元気な友人を見て安心しました。 | I was relieved to see that my friend was just fine.
 1555 | 私はプロのパイロットなので、どうぞご安心を。 | I'm a professional pilot, so don't worry.
 1556 | 社長室をノックした。 | I knocked on the president's office.
@@ -2571,7 +2571,7 @@
 2571 | 出発まで五分です。 | There are five minutes until departure.
 2572 | 二週間後に、東京に出発する予定です。 | I'm going to leave for Tokyo in two weeks.
 2573 | フェリーが出発するまでの時間、お茶でものみましょうよ。 | Let's have some tea until the ferry departs.
-2574 | 母は足が不自由なので、車を使うことが多いです。 | My mother has a leg disability, so she often uses a car.
+2574 | 母は足が不自由なので、車を使うことが多いです。 | My mother has a leg disability, so she often uses a car!
 2575 | ここは、おじいちゃん・おばあちゃん、体の不自由な方のためのベンチです。 | This is a bench for grandpas, grandmas, and people with physical disabilities.
 2576 | 不自由な生活を送っている人々をサポートするために、国民全員が助力するべきです。 | Every citizen should help out to support those who live life with disabilities.
 2577 | 木の上に毛虫を発見しました。 | I found a caterpillar on a tree.
@@ -3653,7 +3653,7 @@
 3653 | この辺は小さい神社が多いですね。 | There are lots of small shrines around here.
 3654 | 神社でおみくじを引いたことはありますか？ | Have you ever drawn a fortune slip at a shrine?
 3655 | 最近は神社で自撮りするインフルエンサーが多いんですよ。 | Many influencers are taking selfies at shrines these days.
-3656 | スーパーで買い物をしたばかりです。 | I've just done the grocery shopping.
+3656 | スーパーで買い物をしたばかりです。 | I've just done the grocery shopping！
 3657 | たまにはデパートに買い物に行こうよ。 | Let's go shopping at a department store sometime.
 3658 | 今日はクリスマスの買い物に行くの！すごくワクワクするわ！ | We’re going Christmas shopping today! I’m so excited!
 3659 | この正方形の辺の長さは、それぞれ四センチです。 | The length of each side of this square is four centimeters.
@@ -4172,7 +4172,7 @@
 4172 | 教室を出た後は電気を消すのを忘れないで下さい。 | After you leave the classroom, please don’t forget to turn off the light.
 4173 | 小さい男の子が転んでしまいました。 | A small boy fell.
 4174 | 雪のせいで道で転んでしまいそうでした。 | I almost fell on the street because of the snow.
-4175 | コウイチ、今日は転んでも泣かなかったね。 | Koichi didn't cry when he fell today.
+4175 | コウイチ、今日は転んでも泣かなかったね | Koichi didn't cry when he fell today.
 4176 | 五時には仕事を終えて会社を出たい。 | I want to finish work and leave the office by five.
 4177 | 王女はケーキを食べ終えるとすぐに、お茶を飲んだ。 | As soon as the princess finished the cake, she had some tea.
 4178 | ほとんどの魚は水中で一生を終える。 | Most fish spend their entire life in water.
@@ -5388,7 +5388,7 @@
 5388 | 昨日の日本代表の試合、すごかったね！見た？ | Yesterday's game of the Japanese national team was amazing, right? Did you watch it?
 5389 | コウイチの家に行ってみたけど、留守でした。 | I visited Koichi's house, but he was not there.
 5390 | 留守中に、友人が訪ねてきたようです。 | It seems like a friend visited while I was out.
-5391 | 母は買い物に出かけているので、私と妹が留守番をしています。 | My mom is out shopping, so my sister and I are house sitting.
+5391 | 母は買い物に出かけているので、私と妹が留守番をしています。 | Thanks to your taking care of my kid, Ms. Date, I could do my shopping freely！
 5392 | 彼は世界的に有名な料理人です。 | He is a world-renowned chef.
 5393 | 僕の彼女は料理人としてレストランで働いています。 | My girlfriend works as a cook in a restaurant.
 5394 | 料理人は料理のプレゼンテーションにも気を配らなくてはなりません。 | Chefs also need to pay attention to the presentation of their dishes.
@@ -7969,7 +7969,7 @@
 7969 | 新しい戸棚をつけたんです。 | I installed a new cabinet.
 7970 | スプーンやフォークなら、そこの戸棚の引き出しに入ってるよ。 | If you're looking for spoons and forks, they're in the drawer in the cabinet there.
 7971 | 戸棚を開くと、たくさんのスパイスや調味料がならんでいた。 | When I opened the cabinet, I found many spices and seasonings.
-7972 | 今日買った単三電池は戸棚の上に置いておいたよ。 | I put the double A batteries that we bought today in the cupboard.
+7972 | 今日買った単三電池は戸棚の上に置いておいたよ。 | I put the double A batteries that we bought today in the cupboard
 7973 | 今日志賀直哉の小説『城の崎にて』を読み始めました。 | I started reading Naoya Shiga’s novel, "At Cape Kinosaki" today.
 7974 | この城の中では、飲食は禁止です。 | Eating and drinking are prohibited in this castle.
 7975 | 今でも残っているお城は、全て観光名所になっています。 | The castles that still remain have all become famous sightseeing spots.
@@ -9927,7 +9927,7 @@
 9927 | 戦国時代に天下統一を目指した3人は誰でしょう。 | Who were the three individuals who aimed to unify the country during the Warring States period?
 9928 | 残品はこちらで引き取るので、こちらのお店で販売させてもらえませんか。 | You can return any unsold stock, so would you let us sell our products here?
 9929 | 今夜店を出発する前に残品を数えておきましょう。 | Before we leave the store tonight, let’s go ahead and count the remaining stock.
-9930 | 残品は半額で処分しました。 | We sold the remaining goods at half price.
+9930 | 残品は半額で処分しました。 | We sold the remaining goods at half price!
 9931 | ヤツの状況はかなり切迫しているはずです。 | His situation must be pretty dire.
 9932 | コウイチは切迫した表情で、「俺、今すぐトイレに行かなきゃヤバイんだ」と言った。 | With an urgent expression on his face, Koichi said, "I need to go to the bathroom right now, or it's going to be bad.”
 9933 | ヤクザからお金を借りなければいけないという切迫した危機に直面している。 | I’m facing an imminent crisis so I need to borrow money from the yakuza.
@@ -13194,7 +13194,7 @@
 13194 | 私は偽の売買契約書で、お金を詐取されました。 | My money was swindled by a forged title deed.
 13195 | この巻尺で胸囲を測るのを手伝ってもらえませんか。 | Could you help me get my chest measurement with this tape measure?
 13196 | 私は畳の上に脱ぎ捨てられた、表裏が逆になった皺々のワイシャツを見つけました。 | I found his inside out, wrinkled dress shirt on the tatami where he threw it.
-13197 | 伊達さんがうちの子を見ていてくれたお陰で気兼ねなく買い物ができました。 | Thanks to your taking care of my kid, Ms. Date, I could do my shopping freely.
+13197 | 伊達さんがうちの子を見ていてくれたお陰で気兼ねなく買い物ができました。 | Let's go shopping at a department store sometime！
 13198 | 両親がプレゼントしてくれた羽毛布団のお陰で、最近布団から出るのがかなり辛い。 | Because of the down quilt that my parents gave me, it’s really hard to get out of bed these days.
 13199 | 皆様のお陰で、我々は甲子園球場で開催されている高校野球のトーナメントで、準々決勝にまで進出することができました。 | Thanks to everyone, we could go to the quarter-finals of the Japan National High School Baseball Tournament held in Koshien stadium.
 13200 | ホームステイ先のお父さんが、今日の夕飯の際に黒い霧事件について説明をしてくれました。 | My home stay father explained the Black Mist Scandal to me at dinner tonight.

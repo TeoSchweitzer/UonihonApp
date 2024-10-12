@@ -125,12 +125,12 @@ export function edit(divId) {
         let inlinedEdition = trimmedEdition.replaceAll('\n', '')
         let editedCurrentWord = currentWord;
 
-        if (divId.includes("sentence") || divId.includes("translation")) {
+        if (divId.includes("japanese") || divId.includes("translation")) {
             if (div.textContent === "") {
                 let removed = editedCurrentWord.sentences.splice(parseInt(divId.match(/\d+/))-1, 1)[0]
                 deleteSentence(removed.id)
             } else {
-                editedCurrentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("sentence"))?"sentence":"translation"] = inlinedEdition
+                editedCurrentWord.sentences[parseInt(divId.match(/\d+/))-1][(divId.includes("japanese"))?"japanese":"translation"] = inlinedEdition
             }
         }
         else if (divId.includes("Familiarity")) {
@@ -151,6 +151,7 @@ export function edit(divId) {
         }
         setCurrentWord(editedCurrentWord)
         setDisplayedWordToCurrentWord(divId);
+        reveal(divId);
     });
 }
 

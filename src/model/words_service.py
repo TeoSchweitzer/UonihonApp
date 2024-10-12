@@ -60,8 +60,6 @@ def find_relevant_sentences(given_word, sentences, list_of_words):
     chosen_sentences = []
     broad_choice = []
     words_that_fit_given_word_in_them = [word[1] for word in list_of_words if given_word[1] in word[1]]
-    print(given_word)
-    print(words_that_fit_given_word_in_them)
     for sentence in sentences:
         added = False
         for fitted in words_that_fit_given_word_in_them:

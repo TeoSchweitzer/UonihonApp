@@ -29,9 +29,9 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
     (currentWord.sentences ?? [])?.forEach(function (sentence, i) {
         let htmlSentence = `
                     <div class="line"> </div>
-                    <div id="sentence${i + 1}-obfuscation-card" class="obfuscation-container" style="margin: 12px 0" >
+                    <div id="japanese${i + 1}-obfuscation-card" class="obfuscation-container" style="margin: 12px 0" >
                     <div class="label">Phrase ${i + 1}</div>
-                    <div id="sentence${i + 1}" class="card long">${heightLightWordIn(currentWord.word, sentence.japanese)}</div>
+                    <div id="japanese${i + 1}" class="card long">${heightLightWordIn(currentWord.word, sentence.japanese)}</div>
                     </div>
                     <div id="translation${i + 1}-obfuscation-card" class="obfuscation-container" >
                     <div class="label">Traduction ${i + 1}</div>
@@ -39,7 +39,7 @@ export function setDisplayedWordToCurrentWord(useLlmOnlyOn) {
                     </div>
                 `
         sentencesNode.insertAdjacentHTML('beforeend', htmlSentence)
-        addListener(`sentence${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `sentence${i + 1}`));
+        addListener(`japanese${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `japanese${i + 1}`));
         addListener(`translation${i + 1}-obfuscation-card`, (event)=>obfuscateOrEdit(event, `translation${i + 1}`));
     });
 
