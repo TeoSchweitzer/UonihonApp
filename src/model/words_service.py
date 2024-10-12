@@ -58,14 +58,28 @@ def sentences_initialisation(current_sentences):
 
 def find_relevant_sentences(given_word, sentences, list_of_words):
     chosen_sentences = []
+    broad_choice = []
     words_that_fit_given_word_in_them = [word[1] for word in list_of_words if given_word[1] in word[1]]
+    print(given_word)
+    print(words_that_fit_given_word_in_them)
     for sentence in sentences:
+        added = False
         for fitted in words_that_fit_given_word_in_them:
-            if (fitted in sentence) and (fitted == given_word):
+            if (fitted in sentence[1]) and (fitted == given_word[1]):
                 chosen_sentences.append(sentence)
+                added = True
                 break
-    return chosen_sentences
+        if not added:
+            for fitted in words_that_fit_given_word_in_them:
+                if fitted in sentence[1]:
+                    broad_choice.append(sentence)
+                    break
 
+    if len(chosen_sentences) >= 5:
+        return chosen_sentences
+    if len(broad_choice) > 5-len(chosen_sentences):
+        return chosen_sentences + random.sample(broad_choice, 5-len(chosen_sentences))
+    return chosen_sentences + broad_choice
 
 def choose_word(word_array, usage_array, dictionary_array, focus="no-focus"):
 
@@ -80,8 +94,8 @@ def choose_word(word_array, usage_array, dictionary_array, focus="no-focus"):
     amount_tested_today = 0
 
     for usage in usage_array:
-        identifier, familiarity = usage[0], usage[2 if r else 3]
-        amount, date = usage[4 if r else 5], datetime.datetime.fromisoformat(usage[6 if r else 7])
+        identifier, familiarity = usage[0], int(usage[2 if r else 3])
+        amount, date = int(usage[4 if r else 5]), datetime.datetime.fromisoformat(usage[6 if r else 7])
         if date.date() == current_time.date():
             amount_tested_today += 1
         else:
