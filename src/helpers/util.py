@@ -31,12 +31,18 @@ def modify_file(file_path, edition_function=(lambda x,y:x)):
     move(abs_path, file_path)
 
 def get_file_content_as_arrays(file_path):
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as _:
+            return []
     with open(file_path, 'r', encoding="utf-8") as wordsFile:
         file_content = wordsFile.read().splitlines()
-    return list(filter(lambda v: len(v)>0, list(map(lambda u: list(map(lambda v: v.strip(), u.split('|'))), file_content))))
+    return list(filter(lambda v: len(v)>0,
+                       list(map(lambda u:
+                                list(map(lambda v: v.strip(), u.split('|'))), file_content))))
 
 
 DICTIONARY_PATH = resource('data/dictionary.txt')
+DICTIONARY_SENTENCES_PATH = resource('data/sentences.txt')
 WORDS_PATH = user_saved_data('words.txt')
 SENTENCES_PATH = user_saved_data('sentences.txt')
 USAGE_PATH = user_saved_data('usage.txt')

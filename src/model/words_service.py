@@ -8,9 +8,11 @@ from helpers.util import get_valid_new_id, modify_file, get_file_content_as_arra
 def get_word_from_files(word_id, focus):
     custom_words_list_splitted = get_file_content_as_arrays(util.WORDS_PATH)
     dictionary_list_splitted = get_file_content_as_arrays(util.DICTIONARY_PATH)
+    all_words = custom_words_list_splitted + dictionary_list_splitted
     usage_list_splitted = get_file_content_as_arrays(util.USAGE_PATH)
     sentences_list_splitted = get_file_content_as_arrays(util.SENTENCES_PATH)
 
+    sentences_initialisation(sentences_list_splitted)
     usage_file_upkeep(custom_words_list_splitted, usage_list_splitted)
 
     if word_id == "fromScore":
@@ -18,12 +20,11 @@ def get_word_from_files(word_id, focus):
     else:
         chosen_word_id = word_id.strip()
 
-    chosen_word = next(filter(lambda v: v[0] == chosen_word_id, custom_words_list_splitted + dictionary_list_splitted),
-                       None)
+    chosen_word = next(filter(lambda v: v[0] == chosen_word_id, all_words), None)
     if chosen_word is None:
         return "Word with id" + chosen_word_id + " not found"
 
-    chosen_sentences = [sentence for sentence in sentences_list_splitted if (chosen_word[1] in sentence[1])]
+    chosen_sentences = find_relevant_sentences(chosen_word, sentences_list_splitted, all_words)
     if len(chosen_sentences) > 5:
         chosen_sentences = random.sample(chosen_sentences, 5)
 
@@ -44,6 +45,26 @@ def get_word_from_files(word_id, focus):
 
     word_usage = parse_word_usage_for_given_focus(chosen_word_id, usage_list_splitted, focus)
     return result | word_usage
+
+
+def sentences_initialisation(current_sentences):
+    if len(current_sentences) != 0:
+        return
+    def update_file(_, new_file):
+        dico_sentences = get_file_content_as_arrays(util.DICTIONARY_SENTENCES_PATH)
+        [new_file.write(' | '.join(line)) for line in dico_sentences]
+    modify_file(util.SENTENCES_PATH, update_file)
+
+
+def find_relevant_sentences(given_word, sentences, list_of_words):
+    chosen_sentences = []
+    words_that_fit_given_word_in_them = [word[1] for word in list_of_words if given_word[1] in word[1]]
+    for sentence in sentences:
+        for fitted in words_that_fit_given_word_in_them:
+            if (fitted in sentence) and (fitted == given_word):
+                chosen_sentences.append(sentence)
+                break
+    return chosen_sentences
 
 
 def choose_word(word_array, usage_array, dictionary_array, focus="no-focus"):
