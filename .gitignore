@@ -1,2 +1,4 @@
 **/__pycache__/*
 **/.tmp.driveupload/*
+.python_packages
+venv

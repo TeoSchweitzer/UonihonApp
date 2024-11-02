@@ -1,0 +1,192 @@
+100311 | のります | のります | monter dans/prendre (le transport) | | 
+100312 | ロビー | ロビー | lobby | | 
+100313 | ひろば | ひろば | une place (plaza) | | 
+100314 | とります | とります | prendre | s'obtenir \n attraper | prendre (une photo/un poisson/des profits)
+100315 | ライオン | ライオン | lion | |
+100317 | 見ましょう | 見ましょう | devrait regarder | | 
+100318 | 会います | あいます | se retrouver (à) | | 
+100319 | チケット | チケット | tiquet | | tiquet d'avion/parc/théâtre/...
+100320 | スーツケース | スーツケース | valise | | 
+100321 | しましょう | しましょう | devrait | | 
+100322 | 行きましょう | いきましょう | C'est parti | faut (y) aller \n on devrait aller |
+100323 | ガーデニング | ガーデニング | jardinage | | 
+100324 | そして | そして | Après | | 
+100325 | はいります | はいります | entrer | | entrer dans le bain/le club
+100326 | ストレッチ | ストレッチ | étirements | | 
+100327 | たいえん | たいえん | dur | difficile |
+100328 | てつだいます | てつだいます | aider | assister |
+100329 | のあと | のあと | après avoir | | 
+100330 | かえります | かえります | retourner | rentrer |
+100331 | ソウル | ソウル | Seoul | | 
+100332 | おこさん | おこさん | (ton/tes) enfant•s | | 
+100333 | フランスご | フランスご | français (langue) | | 
+100334 | フランス | フランス | la France | | 
+100335 | かんこくご | かんこくご | Coréen (langue) | | 
+100336 | マレーシア | マレーシア | Malaisie | | 
+100337 | ちゅごくご | ちゅごくご | Chinois (langue) | | 
+100338 | できます | できます | pouvoir | pouvoir parler le |
+100339 | オーストラリア | オーストラリア | Australie | | 
+100340 | コーチ | コーチ | coach | | 
+100341 | います | います | avoir | | dans le sens "avoir une famille/un frère/etc."
+100342 | ココア | ココア | chocolat chaud | | 
+100343 | コンサート | コンサート | concert | | 
+100344 | ごんばん | ごんばん | ce soir | | 
+100345 | ビーチ | ビーチ | plage | | 
+100346 | 九月 | くがつ | septembre | | 
+100347 | 七月 | しちがつ | juillet | | 
+100348 | プ一ル | プ一ル | piscine | | 
+100349 | ちゃんと | ちゃんと | correctement | s'assurer de \n "bien" dans "tu as bien..." |
+100350 | 休みます | やすみます | se reposer | | 
+100351 | ご+りょうしん | ご+りょうしん | parents | | 
+100352 | アレルギー | アレルギー | allergie | | 
+100353 | ご+かぞく | ご+かぞく | votre famille | | 
+100354 | でんわばんごう | でんわばんごう | numéro de téléphone | | 
+100355 | 何さい | 何さい | quelle âge | | 
+100356 | 〇 | 〇 | zero | | 
+100357 | ぐあいがわるい | ぐあいがわるい | se sentir malade | | 
+100358 | すわります | すわります | s'asseoir | | 
+100359 | ポストカード | ポストカード | carte postale | | 
+100360 | ラーメンや | ラーメンや | magasin de ramen | | 
+100361 | デザート | デザート | dessert | | 
+100362 | ピザや | ピザや | pizzeria | | 
+100363 | おてら | おてら | temple | | 
+100364 | 何ですか | なんですか | est quoi ? | | 
+100365 | かかります | かかります | prendre (du temps) | | 
+100366 | ぐらい | ぐらい | autour de | | 
+100367 | もうすぐ | もうすぐ | bientôt | | 
+100368 | 来ます | きます | arriver | | 
+100369 | 行きます | いきます | aller | | 
+100370 | でんしレンジ | でんしレンジ | micro-onde | | 
+100371 | テーブル | テーブル | table | | 
+100372 | エアコン | エアコン | climatisation | | 
+100373 | べッド | べッド | lit | | 
+100374 | リビング | リビング | pièce à vivre | | 
+100375 | キッチン | キッチン | cuisine | | 
+100376 | アパート | アパート | apartment | | 
+100377 | ひっこします | ひっこします | déménager | | 
+100378 | こちら | こちら | Voici | | 
+100379 | ほんとうですか | ほんとうですか | vraiment? | | 
+100380 | アクツョン | アクツョン | action (genre) | | 
+100381 | コメディ | コメディ | comédie (genre) | | 
+100382 | どんな | どんな | quelle sorte/genre | | 
+100383 | ファンタヅ一 | ファンタヅ一 | fantaisie (genre) | | 
+100384 | アメリカの | アメリカの | américain (d'origine) | | 
+100385 | ホラー | ホラー | horreur (genre) | | 
+100386 | ミステリー | ミステリー | mistère (genre) | | 
+100387 | 日本の | にほんの | japonais (origine) | | 
+100388 | がすきです | がすきです | est aimé | | 
+100389 | べトナム | べトナム | Vietnam | | 
+100390 | と言います | といいます | est mon nom | | 
+100391 | はしります | はしります | courir | | 
+100392 | パスタ | パスタ | pâtes | | 
+100393 | あびます | あびます | prendre | | Dans le sens "prendre une douche/le soleil"
+100394 | シャワー | シャワー | douche | | 
+100395 | メール | メール | email | | 
+100396 | ねます | ねます | dormir | | 
+100397 | 作ります | つくります | faire | fabriquer |
+100398 | まいしゅう | まいしゅう | Toutes les semaines | | 
+100399 | バレーボール | バレーボール | volleyball | | 
+100400 | いつも | いつも | toujours | | 
+100401 | おきます | おきます | se lever | | 
+100402 | ラジオ | ラジオ | radio | | 
+100403 | コインロッカー | コインロッカー | casier | | 
+100404 | カフェ | カフェ | café | | (le lieu, un café)
+100405 | コンセント | コンセント | prise électrique | | 
+100406 | エレベーター | エレベーター | ascenseur | | 
+100407 | ATM | ATM | ATM | | 
+100408 | wifi | wifi | Wifi | | 
+100409 | ありません | ありません | ne pas avoir | ne pas y avoir |
+100410 | のりかえ | のりかえ | correspondance | | 
+100411 | ゴミばこ | ゴミばこ | poubelle | | 
+100412 | あります | あります | avoir/y avoir | | 
+100413 | かいさつ | かいさつ | portillon | | 
+100414 | ホーム | ホーム | plateforme (de station) | | 
+100415 | 見ます | みます | regarder | | 
+100416 | 飲みます | のみます | boire  | prendre (un médicament) |
+100417 | どうが | どうが | vidéo | | 
+100418 | 話します | はなします | parler | | 
+100419 | テニス | テニス | tennis | | 
+100420 | でかけます | でかけます | sortir/partir | | 
+100421 | ゲーム | ゲーム | jeu vidéo | | 
+100422 | 買います | かいます | acheter | | 
+100423 | ヨガ | ヨガ | yoga | | 
+100424 | スポーツ | スポーツ | sport | | 
+100425 | あそびます | あそびます | flâner/traîner | | 
+100426 | ドラマ | ドラマ | drama/soap opera | | 
+100427 | ひとりで | ひとりで | seul | | dans le sens "je/tu/il agit seul"
+100428 | およぎます | およぎます | nager | | 
+100429 | アイス | アイス | glacé | | 
+100430 | アいスクリーム | アいスクリーム | créme glacé | | 
+100431 | サラダ | サラダ | salade | | 
+100432 | ええと | ええと | euuuh | | 
+100433 | じゃあ | じゃあ | (et) bien (alors) | | 
+100434 | ていしょく | ていしょく | menu fixe | | 
+100435 | てんぷら | てんぷら | tempura | | 
+100436 | うどん | うどん | udon | | 
+100437 | レストラン | レストラン | restaurant | | 
+100438 | ありがとうございます | ありがとうございます | merci | | 
+100439 | ジャケット | ジャケット | veste | | 
+100440 | ネクタイ | ネクタイ | cravate | | 
+100441 | いい | いい | bien | | 
+100442 | ドレス | ドレス | robe | | 
+100443 | が欲しいです | がほしいです | (sujet) veut | | 
+100444 | スカート | スカート | Jupe | | 
+100445 | Tシャツ | Tシャツ | t-shirt | | 
+100446 | はちょっと | はちょっと | n'irait pas bien | me va pas \n j'aime pas trop |
+100447 | ダサい | ダサい | moche | nul |
+100448 | 七時 | しちじ | 7 heures | | 
+100449 | 食べます | たべます | manger | | 
+100450 | サンドイッチ | サンドイッチ | sandwich | | 
+100451 | jポップ | jポップ | J-pop | | 
+100452 | アニメ | アニメ | anime | | 
+100453 | します | します | jouer de | faire (agir) |
+100454 | ニュース | ニュース | les actualités | | 
+100455 | ロック | ロック | rock | | 
+100456 | じャズ | じャズ | jazz | | 
+100457 | サッカー | サッカー | football | | 
+100458 | を | を | avec/pour/via | | 
+100459 | です | です | est | | 
+100460 | じゃないです | じゃないです | n'est pas | | 
+100461 | これら | これら | ceux-ci | | 
+100462 | それら | それら | ceux-là | | 
+100463 | このら | このら | ces (objets)-ci | | 
+100464 | そのら | そのら | ces (objets)-là | | 
+100465 | の | の | de | | 
+100466 | よく | よく | souvent | | 
+100467 | すんでいます | すんでいます | vivre à/habiter | | 
+100468 | おはよございます | おはよございます | bonjour (matin) | | 
+100469 | どうぞよろしく | どうぞよろしく | enchanté de vous rencontrez | | 
+100470 | はじめまして | はじめまして | heureux de vous rencontrer | | 
+100471 | ようこそ | ようこそ | bienvenue | | 
+100472 | じゃあね | じゃあね | au revoir | | 
+100473 | またあした | またあした | à demain | | 
+100474 | おなまえわ | おなまえわ | Comment vous appelez-vous ? | | 
+100475 | かっこいい | かっこいい | cool | | 
+100476 | にぎやか | にぎやか | vivant/plein de vie | | 
+100477 | おしゃれ | おしゃれ | élégant | | 
+100478 | あたまがいい | あたまがいい | intelligent | | 
+100479 | ピザ | ピザ | pizza | | 
+100480 | ケーキ | ケーキ | gâteau | | 
+100481 | カレー | カレー | curry | | 
+100482 | ラーメ ン | ラーメ ン | ramen | | 
+100483 | コンビ二 | コンビ二 | magasin de proximité | | 
+100484 | バスてい | バスてい | Arrêt de bus | | 
+100485 | エンジニア | エンジニア | ingénieur | | 
+100486 | にほんじん | にほんじん | Japonais•e | | 
+100487 | アメリカ | アメリカ | Amérique | | 
+100488 | アメリカじん | アメリカじん | Américain•e | | 
+100489 | カナダ | カナダ | Canada | | 
+100490 | カナダじん | カナダじん | Canadien•ne | | 
+100491 | イギリス | イギリス | Grande Bretagne | | 
+100492 | イギリスじん | イギリスじん | Britannique | | 
+100493 | ブラジル | ブラジル | Brésil | | 
+100494 | ブラジルじん | ブラジルじん | Brésilien•ne | | 
+100495 | 二ューヨーク | 二ューヨーク | New York | | 
+100496 | トロント | トロント | Toronto | | 
+100497 | コート | コート | manteau | |
+100500 | ごろ | ごろ | environ | | 
+100501 | パスポート | パスポート | passport | | 
+100502 | スマホ | スマホ | smartphone | | 
+100503 | かばん | かばん | sac | |
+100505 | いもうと(さん) | いもうと(さん) | (ta) petite sœur | | 
+100506 | バスケットボール | バスケットボール | basketball | | 
