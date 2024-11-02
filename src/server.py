@@ -45,4 +45,4 @@ def get_asset(resource):
     return the_resource
 
 
-run(app=app, host=('192.168.1.86' if os.name == 'nt' else 'localhost'), port=8080, debug=True)
+run(app=app, host=('localhost' if os.name != 'nt' else '192.168.1.86'), port=8080, debug=True)
